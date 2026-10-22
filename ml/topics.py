@@ -1,4 +1,4 @@
-"""Темы аналитики и карта «тема -> признак компании».
+"""Темы аналитики и карта «тема -> признак компании» (PLAN.md, раздел 2.5).
 
 Используется эвристическим ранжированием, разбором материалов без LLM и eval.
 """
@@ -93,6 +93,51 @@ TOPICS: dict[str, Topic] = {t.key: t for t in [
 ]}
 
 
+# Подтемы широкой темы для сопоставления материала с фрагментами банка: «Валюта, золото, внешние рынки» объединяет курс
+# рубля и золото, и обзор рынка золота считался позицией банка по новости о курсе (карточки real, interpret@v12).
+# Подтема определяется по ключам в тексте; тема разбора («fx_gold») и лента не меняются: ключи разбора и признаки модели
+# ленты остаются прежними. Подтема fx — курс рубля: «доллар» в обзорах золота это индекс доллара США, а «юань» там —
+# интернационализация юаня через золото, к курсу рубля не относится.
+FACETS: dict[str, dict[str, tuple[str, tuple[str, ...]]]] = {
+    "fx_gold": {
+        "fx": ("Валютный курс рубля", ("рубл", "валютн", "курс доллар", "курсы доллар", "курс евро", "курс валют")),
+        "gold": ("Золото и драгметаллы", ("золот", "драгмет", "etf")),
+    },
+}
+
+
+def _facet_hits(topic: str, text: str) -> dict[str, int]:
+    """Подтемы, которые преобладают в тексте: не меньше половины ключей самой частой (обзор золота с упоминанием юаня — золото)."""
+    hits = {k: len(_keyword_pattern(kw).findall(text)) for k, (_, kw) in FACETS.get(topic, {}).items()}
+    top = max(hits.values(), default=0)
+    return {k: n for k, n in hits.items() if n and n * 2 >= top}
+
+
+def topic_facets(topics: list[str], text: str) -> set[str]:
+    """Темы с подтемами («fx_gold:fx», «fx_gold:gold»); тема без найденной подтемы остаётся целой («fx_gold»)."""
+    out: set[str] = set()
+    for t in topics:
+        out |= {f"{t}:{k}" for k in _facet_hits(t, text)} or {t}
+    return out
+
+
+def facets_overlap(a: set[str], b: set[str]) -> bool:
+    """Общая тема: совпадение подтем; целая тема совпадает с любой своей подтемой."""
+    if a & b:
+        return True
+    whole_a, whole_b = {x for x in a if ":" not in x}, {x for x in b if ":" not in x}
+    return any(x.split(":")[0] in whole_b for x in a) or any(x.split(":")[0] in whole_a for x in b)
+
+
+def facet_titles(topics: list[str], text: str) -> list[str]:
+    """Названия тем для поисковых запросов к аналитике банка: подтема вместо широкой темы, если она определена."""
+    out = []
+    for t in topics:
+        found = [FACETS[t][k][0] for k in _facet_hits(t, text)]
+        out += found or ([TOPICS[t].title] if t in TOPICS else [])
+    return out
+
+
 def okved_matches(code: str | None, prefixes: tuple[str, ...]) -> bool:
     """Иерархия ОКВЭД по цифрам: префикс `49.4` покрывает `49.41`, `47` покрывает `47.71`."""
     if not code:
@@ -129,6 +174,10 @@ def _feature_on(profile: CompanyProfile, path: str) -> bool:
 
 
 INDUSTRY_WEIGHT = 0.6
+# Откуда тема даёт причину «отрасль компании напрямую в теме» (ручная проверка real, analysis.md): "all" — по okved_prefixes
+# всех тем; "narrow" — кроме широких тем (broad=True: ставка, инфляция, труд, ВВП), где список отраслей не следует из текста
+# новости; "none" — ни у одной темы: отраслевая связь только по okved_hints разбора самой новости и смежности.
+TOPIC_OKVED = os.getenv("ML_TOPIC_OKVED", "narrow")
 FEATURE_WEIGHT = 0.45
 BROAD_WEIGHT = 0.15
 
@@ -137,7 +186,8 @@ def topic_reasons(profile: CompanyProfile, topic_key: str) -> list[tuple[float, 
     """Причины, почему тема важна компании: (вес, причина, путь признака)."""
     t = TOPICS[topic_key]
     out: list[tuple[float, str, str]] = []
-    if okved_matches(profile.industry.okved_code, t.okved_prefixes):
+    by_topic = TOPIC_OKVED == "all" or (TOPIC_OKVED == "narrow" and not t.broad)
+    if by_topic and okved_matches(profile.industry.okved_code, t.okved_prefixes):
         out.append((INDUSTRY_WEIGHT, f"отрасль компании ({profile.industry.okved_name}) напрямую в теме «{t.title}»", "industry.okved_code"))
     for path, reason in t.features.items():
         if _feature_on(profile, path):
@@ -174,7 +224,7 @@ def adjacency_reason(company_okved: str | None, hints: tuple[str, ...]) -> str |
     return None
 
 
-# Источник смежности: "flows" только платежи, "rules" только ручная карта,
+# Источник смежности (IMPROVEMENTS.md, B1): "flows" только платежи, "rules" только ручная карта,
 # "flows+rules" платежи, а ручная карта как резерв для пар, по которым платежей мало.
 ADJACENCY_SOURCE = os.getenv("ML_ADJACENCY", "flows+rules")
 
@@ -196,7 +246,7 @@ def adjacency_link(company_okved: str | None, hints: tuple[str, ...], source: st
     return (why, "expert_rule") if why else None
 
 
-# Каналы влияния события на компанию: общая таксономия экономических
+# Каналы влияния события на компанию (IMPROVEMENTS.md, A3 и B2): общая таксономия экономических
 # механизмов, не темы конкретного банка и не отрасли eval-набора. Признаки профиля — подсказка,
 # через какие поля обычно проходит канал; проверка кода требует только, чтобы поле было заполнено.
 @dataclass(frozen=True)
@@ -229,3 +279,33 @@ IMPACT_CHANNELS: dict[str, ImpactChannelDef] = {c.key: c for c in [
     ImpactChannelDef("regulation", "Регулирование", "пошлины, налоги, требования к отрасли",
                      ("industry.okved_code", "industry.okved_name", "geo.foreign_trade")),
 ]}
+
+
+# Признаки профиля, через которые канал касается компании напрямую (флаги продуктов, ВЭД, численность).
+# Отраслевые каналы (затраты, спрос, цены товаров, цепочка поставок, регулирование) идут через okved_hints материала
+# и смежность по платежам в ленте, а не через этот словарь. РКО и зарплатный проект есть почти у всех: связи не доказывают.
+CHANNEL_HOOKS = {
+    "bank_products.loan": "есть кредитные продукты",
+    "bank_products.leasing": "есть лизинг",
+    "bank_products.deposit": "есть депозиты",
+    "bank_products.guarantee": "есть банковские гарантии",
+    "bank_products.factoring": "есть факторинг",
+    "geo.foreign_trade": "есть внешняя торговля",
+    "size.workers_band": "трудоёмкий бизнес",
+}
+
+
+def channel_reasons(profile: CompanyProfile, channels: list[str], scope: str | None) -> list[tuple[float, str, str]]:
+    """Причины по каналам влияния материала (оценка модели, ml/ingest/importance.py) вместо ручной карты TOPICS:
+    (вес, причина, путь признака). Без зацепок и при scope=economy: слабая широкая причина."""
+    out: list[tuple[float, str, str]] = []
+    for key in channels:
+        ch = IMPACT_CHANNELS.get(key)
+        if ch is None:
+            continue
+        for path in ch.features:
+            if path in CHANNEL_HOOKS and _feature_on(profile, path):
+                out.append((FEATURE_WEIGHT, f"{ch.title}: {CHANNEL_HOOKS[path]}", path))
+    if not out and scope == "economy":
+        out.append((BROAD_WEIGHT, "событие касается всей экономики (оценка модели)", "eligible_big"))
+    return out

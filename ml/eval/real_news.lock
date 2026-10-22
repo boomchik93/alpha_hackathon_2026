@@ -1,0 +1,57 @@
+{
+ "file": "real_news.jsonl",
+ "sha256": "6ffbc41bc321e42de9db7f1aee41955f86f190f277e7d9c5347bf5373ed92ffb",
+ "n": 79,
+ "as_of": "2026-10-22",
+ "window_days": 7,
+ "seed": 20261022,
+ "sources": [
+  "https://lenta.ru/rss/news/economics",
+  "https://tass.ru/rss/v2.xml?sections=ekonomika",
+  "https://www.cbr.ru/rss/eventrss",
+  "https://www.interfax.ru/rss.asp?r=business",
+  "https://www.kommersant.ru/RSS/news.xml",
+  "https://www.vedomosti.ru/rss/rubric/economics"
+ ],
+ "records_with_date": 795,
+ "in_window": 527,
+ "after_dedup": 439,
+ "with_text": 127,
+ "selected": 79,
+ "dev": 47,
+ "holdout": 32,
+ "holdout_from": "2026-10-20",
+ "by_source": {
+  "\"Ведомости\". Ежедневная деловая газета": 18,
+  "События и комментарии": 5,
+  "Lenta.ru : Новости : Экономика": 44,
+  "Интерфакс": 6,
+  "Коммерсантъ. Лента новостей": 6
+ },
+ "strata": {
+  "dev": {
+   "consumption": 2,
+   "inflation": 5,
+   "fx_gold": 6,
+   "gdp_industry": 10,
+   "key_rate": 6,
+   "labor": 3,
+   "fuel": 5,
+   "прочее": 6,
+   "нерелевантное": 4
+  },
+  "holdout": {
+   "прочее": 8,
+   "fuel": 2,
+   "inflation": 3,
+   "bonds": 1,
+   "key_rate": 4,
+   "steel": 1,
+   "fx_gold": 3,
+   "consumption": 1,
+   "gdp_industry": 5,
+   "labor": 1,
+   "нерелевантное": 3
+  }
+ }
+}

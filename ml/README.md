@@ -1,6 +1,6 @@
 # ML-слой
 
-Подробное описание: [OVERVIEW.md](OVERVIEW.md). Пока нет `LLM_BASE_URL`, все вызовы LLM идут в мок (`ml/llm/mock.py`): пайплайн работает целиком, но тексты карточек помечены `[MOCK]`.
+Каркас по [ML_SPEC.md](docs/ML_SPEC.md) и [PLAN.md](docs/PLAN.md). Пока нет `LLM_BASE_URL`, все вызовы LLM идут в мок (`ml/llm/mock.py`): пайплайн работает целиком, но тексты карточек помечены `[MOCK]`.
 
 ## Запуск
 
@@ -24,11 +24,23 @@ make serve    # HTTP на :8001, документация /docs
 |---|---|---|
 | `GET /companies` | `list_companies()` | краткий список 115 компаний и 298 групп |
 | `GET /companies/{id}` | `build_profile(id)` | `CompanyProfile` |
-| `GET /companies/{id}/feed` | `get_ranked_feed(id)` | `Feed` |
+| `GET /companies/{id}/feed?limit=20&maybe_limit=10&tier=all` | `get_ranked_feed(id, limit, tier, maybe_limit)` | `Feed` |
 | `GET /companies/{id}/insights/{item_id}` | `get_insight(id, item_id)` | `InsightCard` |
 | `POST /cards/{card_id}/followup` | `answer_followup(card_id, q)` | `FollowupAnswer` |
 | `GET /traces/{trace_id}` | | трасса агента |
 | `GET /health` | | режим мока, расход за день |
+
+### Два уровня ленты
+
+Лента состоит из основной части и блока «может быть интересно». Новые поля добавлены со значениями по умолчанию, старые не менялись:
+
+- `FeedEntry.tier`: `"main"` (по умолчанию) или `"maybe"`. Записи `main` идут первыми, затем `maybe`; внутри уровня порядок по `score`.
+- `Feed.maybe_count`: сколько записей `maybe` в ответе (0 при `tier=main`).
+- `tier=all` (по умолчанию): основная лента (до `limit`, 20) и блок «может быть» (до `maybe_limit`, 10). `tier=main`: только основная.
+- Уровень задаёт личный скор пары: от 0,40 или событие прямо в отрасли компании (ОКВЭД) — `main`; от 0,30 до 0,40 — `maybe`;
+  ниже 0,30 материал не показывается. Пороги: `ranker.MAIN_SCORE` (`ML_FEED_MAIN_SCORE`) и `ranker.MIN_SCORE`.
+- У `maybe` первая причина «слабая связь с профилем компании»: фронт может подписать блок и показать, почему материал здесь.
+- Карточки предрасчёта (`make precompute`) считаются только для `main`.
 
 ## Пайплайн
 

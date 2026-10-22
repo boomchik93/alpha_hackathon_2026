@@ -1,4 +1,4 @@
-"""Роли пользователей."""
+"""Роли пользователей (REVIEW_PLAN.md, T17)."""
 
 import pytest
 from fastapi.testclient import TestClient

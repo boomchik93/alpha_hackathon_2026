@@ -1,4 +1,4 @@
-"""Отчёт о фрагментах аналитики по источнику чтения: vl, text_layer или ocr.
+"""Отчёт о фрагментах аналитики по источнику чтения (REVIEW_PLAN.md, T9, шаг 2): vl, text_layer или ocr.
 
     python -m ml.ingest.chunk_report            # markdown в stdout
 

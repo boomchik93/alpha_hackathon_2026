@@ -38,6 +38,8 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--max-rub", type=float, default=15.0)
     ap.add_argument("--workers", type=int, default=6)
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--set", choices=("v2", "real"), default="v2", help="real: реальные новости (запуск с ML_AS_OF из real_news.lock)")
+    ap.add_argument("--tag", default="", help="суффикс папки результата: новая переоценка того же прогона в другом сеансе судьи")
     args = ap.parse_args(argv)
 
     run = Path(args.run)
@@ -54,11 +56,28 @@ def main(argv: list[str] | None = None) -> None:
     from ml.profile.build_profile import get_profile
     from ml.ingest.store import get_item
 
-    load_eval_items(cache_only=True)  # holdout-новости в память процесса
+    if args.set == "real":
+        from ml.eval.run_eval import check_real_as_of, load_real_items
+
+        check_real_as_of()
+        load_real_items(cache_only=True)  # реальные новости в память процесса
+    else:
+        load_eval_items(cache_only=True)  # holdout-новости в память процесса
     client = LLMClient(use_cache=False)
     budget = Budget(start=SpendLedger().spent_today(), max_rub=args.max_rub)
 
+    dst = run.parent / f"{run.name}_rejudge_{version}{'_' + args.tag if args.tag else ''}"
+    # Дозапуск: уже переоценённые карточки (без ошибки) не оцениваются повторно.
+    done_before = {}
+    if (dst / "results.jsonl").exists():
+        for l in (dst / "results.jsonl").read_text(encoding="utf-8").splitlines():
+            x = json.loads(l)
+            if x.get("judge") and "error" not in x["judge"]:
+                done_before[(x["company"], x["item"])] = x
+
     def one(r: dict) -> dict:
+        if (r["company"], r["item"]) in done_before:
+            return done_before[(r["company"], r["item"])]
         out = {**r, "judge_version": version}
         if budget.exceeded():
             return {**out, "judge": {"error": "skipped_budget"}}
@@ -74,7 +93,6 @@ def main(argv: list[str] | None = None) -> None:
 
     with ThreadPoolExecutor(max_workers=args.workers) as ex:
         results = list(ex.map(one, rows))
-    dst = run.parent / f"{run.name}_rejudge_{version}"
     dst.mkdir(exist_ok=True)
     (dst / "results.jsonl").write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in results), encoding="utf-8")
     if not (dst / "cards").exists():

@@ -1,4 +1,4 @@
-"""Целевой набор для сверки противоречий: precision / recall статуса `contradicts`.
+"""Целевой набор для сверки противоречий (REVIEW_PLAN.md, T15): precision / recall статуса `contradicts`.
 
     python -m ml.eval.eval_consistency --mock      # без расходов, проверка скрипта
     python -m ml.eval.eval_consistency             # реальная модель (Gemma), ~10 вызовов, ~0,5 руб.

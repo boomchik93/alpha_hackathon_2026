@@ -16,3 +16,8 @@ build/
 *.log
 ml/eval/review_*
 ml/eval/*.lock
+# Lock-файлы наборов реальных новостей нужны коду оценки (дата as_of, хэш набора)
+!ml/eval/real_news.lock
+!ml/eval/real2_news.lock
+# Пул RSS для итогового набора real2: пополняется ежедневно, до заморозки не открывать (ml/eval/PROTOCOL.md)
+ml/eval/real_pool.jsonl

@@ -1,0 +1,21 @@
+{
+ "models": {
+  "label_a": "deepseek/deepseek-v4.1-flash",
+  "label_b": "qwen/qwen3.6-35b-a3b"
+ },
+ "as_of": "2026-10-22",
+ "pairs": 3160,
+ "companies_labelled": 40,
+ "by_source": {
+  "llm_agreed": 2852,
+  "llm_disputed": 308
+ },
+ "model_vs_model": {
+  "n": 3160,
+  "exact": 0.9025316455696203,
+  "kappa_w": 0.7912379236802081,
+  "kappa": 0.7095672304653615
+ },
+ "parse_rub": 2.704156705961034,
+ "cost_rub": 61.92083406908367
+}

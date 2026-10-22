@@ -113,12 +113,18 @@ _IMPORTANCE_BY_EVENT = {
 }
 
 
+_CHANNEL_BY_TOPIC = {"key_rate": "cost_of_money", "bonds": "cost_of_money", "fx_gold": "fx", "fuel": "input_costs",
+                     "consumption": "demand", "labor": "labor_costs", "inflation": "input_costs", "steel": "commodity_prices"}
+
+
 def _importance(ctx: dict[str, Any]) -> dict:
     """Детерминированно по event_type; несколько тем добавляют вес."""
     base = _IMPORTANCE_BY_EVENT.get(ctx.get("event_type", "other"), 0.3) + 0.05 * max(0, len(ctx.get("topics", [])) - 1)
     imp = round(min(base, 1.0), 2)
     scope = "economy" if imp >= 0.9 else "multi_sector" if imp >= 0.6 else "sector" if imp >= 0.3 else "company" if imp > 0 else "none"
-    return {"importance": imp, "scope": scope, "reason": "[MOCK] по типу события"}
+    channels = [c for t, c in _CHANNEL_BY_TOPIC.items() if t in ctx.get("topics", [])][:3]
+    return {"importance": imp, "scope": scope, "source_type": "official" if imp >= 0.9 else "market", "channels": channels,
+            "reason": "[MOCK] по типу события"}
 
 
 _CUT = re.compile(r"снизи|сниж|смягч|уменьш", re.I)
