@@ -1,0 +1,2102 @@
+[
+ {
+  "company": "U_10529",
+  "item": "h_2026_09_09_housing",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_10529",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_10529",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_10529",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_10529",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_10529",
+  "item": "n_2026_09_14_ofz",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_105459",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_105459",
+  "item": "h_2026_09_12_rub_fx",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_105459",
+  "item": "n_2026_09_08_retail",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_105459",
+  "item": "n_2026_09_14_ofz",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_1595",
+  "item": "h_2026_09_11_metal_prices",
+  "grade": 0,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_1595",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_1595",
+  "item": "h_2026_09_12_rub_fx",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_1595",
+  "item": "n_2026_09_05_football",
+  "grade": 0,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_1595",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_1595",
+  "item": "n_2026_09_08_retail",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_1595",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_1595",
+  "item": "n_2026_09_10_trucking",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_1595",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_1595",
+  "item": "n_2026_09_12_gold",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_177581",
+  "item": "h_2026_09_04_petrol_noisy",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_177581",
+  "item": "h_2026_09_08_pharma",
+  "grade": 0,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_177581",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_177581",
+  "item": "n_2026_09_03_petrol",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_177581",
+  "item": "n_2026_09_06_noisy",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_177581",
+  "item": "n_2026_09_09_wages",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_177581",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_177581",
+  "item": "n_2026_09_11_steel",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_183405",
+  "item": "h_2026_09_09_housing",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_183405",
+  "item": "h_2026_09_11_metal_prices",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_183405",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_183405",
+  "item": "n_2026_09_05_football",
+  "grade": 0,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_183405",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_183405",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_183405",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_183405",
+  "item": "n_2026_09_11_steel",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_183405",
+  "item": "n_2026_09_14_ofz",
+  "grade": 0,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_200890",
+  "item": "h_2026_09_08_pharma",
+  "grade": 0,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_200890",
+  "item": "h_2026_09_09_housing",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_200890",
+  "item": "h_2026_09_11_metal_prices",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_200890",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_200890",
+  "item": "h_2026_09_12_rub_fx",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_200890",
+  "item": "n_2026_09_03_petrol",
+  "grade": 0,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_200890",
+  "item": "n_2026_09_05_football",
+  "grade": 0,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_200890",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_200890",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_200890",
+  "item": "n_2026_09_10_trucking",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_200890",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_200890",
+  "item": "n_2026_09_11_steel",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_202619",
+  "item": "h_2026_09_09_housing",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_202619",
+  "item": "n_2026_09_03_petrol",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_202619",
+  "item": "n_2026_09_12_gold",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_234228",
+  "item": "h_2026_09_11_metal_prices",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_234228",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_234228",
+  "item": "n_2026_09_08_retail",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_234228",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_234228",
+  "item": "n_2026_09_14_ofz",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_235727",
+  "item": "n_2026_09_03_petrol",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_235727",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_235727",
+  "item": "n_2026_09_08_retail",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_235727",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_236447",
+  "item": "h_2026_09_04_petrol_noisy",
+  "grade": 0,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_236447",
+  "item": "h_2026_09_08_pharma",
+  "grade": 0,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_236447",
+  "item": "h_2026_09_09_housing",
+  "grade": 0,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_236447",
+  "item": "h_2026_09_10_grain_duty",
+  "grade": 0,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_236447",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_236447",
+  "item": "h_2026_09_12_rub_fx",
+  "grade": 0,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_236447",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_236447",
+  "item": "n_2026_09_08_retail",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_236447",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_236447",
+  "item": "n_2026_09_10_trucking",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_236447",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_26030",
+  "item": "h_2026_09_10_grain_duty",
+  "grade": 0,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_26030",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_26030",
+  "item": "h_2026_09_12_rub_fx",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_26030",
+  "item": "n_2026_09_03_petrol",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_26030",
+  "item": "n_2026_09_05_football",
+  "grade": 0,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_26030",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_26030",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_26030",
+  "item": "n_2026_09_10_trucking",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_26030",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_26030",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_26030",
+  "item": "n_2026_09_12_gold",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_26030",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_3263",
+  "item": "h_2026_09_04_petrol_noisy",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_3263",
+  "item": "h_2026_09_11_metal_prices",
+  "grade": 0,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_3263",
+  "item": "h_2026_09_12_rub_fx",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_3263",
+  "item": "n_2026_09_03_petrol",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_3263",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_3263",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_3263",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_3263",
+  "item": "n_2026_09_11_steel",
+  "grade": 0,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_3263",
+  "item": "n_2026_09_12_gold",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_34911",
+  "item": "h_2026_09_08_pharma",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_34911",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_34911",
+  "item": "h_2026_09_12_rub_fx",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_34911",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_34911",
+  "item": "n_2026_09_08_retail",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_34911",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_34911",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_34911",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_34911",
+  "item": "n_2026_09_14_ofz",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_4217",
+  "item": "h_2026_09_08_pharma",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_4217",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_4217",
+  "item": "n_2026_09_08_retail",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_4217",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_4217",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_4217",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_4217",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_4217",
+  "item": "n_2026_09_14_ofz",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "U_86035",
+  "item": "h_2026_09_12_rub_fx",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_86035",
+  "item": "n_2026_09_12_gold",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_88715",
+  "item": "h_2026_09_08_pharma",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_88715",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_88715",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_88715",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_88715",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_88715",
+  "item": "n_2026_09_11_steel",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_88715",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_88715",
+  "item": "n_2026_09_14_ofz",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "group_134463_sb",
+  "item": "h_2026_09_04_petrol_noisy",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "group_134463_sb",
+  "item": "h_2026_09_09_housing",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "group_134463_sb",
+  "item": "h_2026_09_11_metal_prices",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "group_134463_sb",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 2,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "group_134463_sb",
+  "item": "h_2026_09_12_rub_fx",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "group_134463_sb",
+  "item": "n_2026_09_03_petrol",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "group_134463_sb",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "group_134463_sb",
+  "item": "n_2026_09_10_trucking",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "group_134463_sb",
+  "item": "n_2026_09_11_steel",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "group_134463_sb",
+  "item": "n_2026_09_12_gold",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "group_134463_sb",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "group_134463_sb",
+  "item": "n_2026_09_14_ofz",
+  "grade": 1,
+  "source": "human",
+  "split": "dev"
+ },
+ {
+  "company": "group_134467_sb",
+  "item": "h_2026_09_08_pharma",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "group_134467_sb",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "group_134467_sb",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "group_134467_sb",
+  "item": "n_2026_09_12_gold",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "group_134467_sb",
+  "item": "n_2026_09_14_ofz",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "group_134709_sb",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "group_134709_sb",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "group_134709_sb",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "group_134709_sb",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "group_134709_sb",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "group_134709_sb",
+  "item": "n_2026_09_14_ofz",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "group_134860_sb",
+  "item": "n_2026_09_05_football",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "group_134860_sb",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "group_134860_sb",
+  "item": "n_2026_09_09_wages",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "group_134860_sb",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "group_134860_sb",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "group_134860_sb",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "group_134860_sb",
+  "item": "n_2026_09_14_ofz",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "dev"
+ },
+ {
+  "company": "U_11496",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_11496",
+  "item": "n_2026_09_03_petrol",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_11496",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_11496",
+  "item": "n_2026_09_08_retail",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_11496",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_11496",
+  "item": "n_2026_09_10_trucking",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_11496",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_11496",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_11496",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_150736",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_150736",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_150736",
+  "item": "n_2026_09_08_retail",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_150736",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_150736",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_150736",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_150736",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_15728",
+  "item": "h_2026_09_04_petrol_noisy",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_15728",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_15728",
+  "item": "n_2026_09_03_petrol",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_15728",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_15728",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_15728",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_18482",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_18482",
+  "item": "h_2026_09_12_rub_fx",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_18482",
+  "item": "n_2026_09_08_retail",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_18482",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_18482",
+  "item": "n_2026_09_12_gold",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_18482",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_18482",
+  "item": "n_2026_09_14_ofz",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_190452",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_190452",
+  "item": "h_2026_09_12_rub_fx",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_190452",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_190452",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_190452",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_190452",
+  "item": "n_2026_09_12_gold",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_190452",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_190452",
+  "item": "n_2026_09_14_ofz",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_212593",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_212593",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_212593",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_2222",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_2222",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_2222",
+  "item": "n_2026_09_08_retail",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_2222",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_2222",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_2222",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_2222",
+  "item": "n_2026_09_12_gold",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_2222",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_2222",
+  "item": "n_2026_09_14_ofz",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_3642",
+  "item": "h_2026_09_09_housing",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_3642",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_3642",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_3642",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_3642",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_3642",
+  "item": "n_2026_09_12_gold",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_3642",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_44792",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_44792",
+  "item": "n_2026_09_05_football",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_44792",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_44792",
+  "item": "n_2026_09_08_retail",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_44792",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_44792",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_44792",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_44792",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_46045",
+  "item": "h_2026_09_10_grain_duty",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_46045",
+  "item": "h_2026_09_11_metal_prices",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_46045",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_46045",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_46045",
+  "item": "n_2026_09_08_retail",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_46045",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_46045",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_46045",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_46045",
+  "item": "n_2026_09_14_ofz",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_4909",
+  "item": "h_2026_09_04_petrol_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_4909",
+  "item": "h_2026_09_08_pharma",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_4909",
+  "item": "h_2026_09_10_grain_duty",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_4909",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_4909",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_4909",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_4909",
+  "item": "n_2026_09_12_gold",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_4909",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_49201",
+  "item": "h_2026_09_12_rub_fx",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_49201",
+  "item": "n_2026_09_05_football",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_49201",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_49201",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_55440",
+  "item": "h_2026_09_11_metal_prices",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_55440",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_55440",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_55440",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_55440",
+  "item": "n_2026_09_12_gold",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_55440",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_55440",
+  "item": "n_2026_09_14_ofz",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_6394",
+  "item": "h_2026_09_09_housing",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_6394",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_6394",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_6394",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_6394",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_6394",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_6394",
+  "item": "n_2026_09_11_steel",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_6394",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_6394",
+  "item": "n_2026_09_14_ofz",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_85265",
+  "item": "h_2026_09_09_housing",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_85265",
+  "item": "h_2026_09_10_grain_duty",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_85265",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_85265",
+  "item": "n_2026_09_05_football",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_85265",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_85265",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_85265",
+  "item": "n_2026_09_10_trucking",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_85265",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_85265",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_85265",
+  "item": "n_2026_09_12_gold",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_85265",
+  "item": "n_2026_09_14_ofz",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_99802",
+  "item": "h_2026_09_09_housing",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_99802",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_99802",
+  "item": "n_2026_09_03_petrol",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_99802",
+  "item": "n_2026_09_05_football",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_99802",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_99802",
+  "item": "n_2026_09_08_retail",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_99802",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_99802",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "U_99802",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_132701_sb",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_132701_sb",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_132701_sb",
+  "item": "n_2026_09_10_trucking",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_132701_sb",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_132701_sb",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_132701_sb",
+  "item": "n_2026_09_14_ofz",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_133442_sb",
+  "item": "h_2026_09_04_petrol_noisy",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_133442_sb",
+  "item": "h_2026_09_10_grain_duty",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_133442_sb",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_133442_sb",
+  "item": "n_2026_09_06_noisy",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_133442_sb",
+  "item": "n_2026_09_08_retail",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_133442_sb",
+  "item": "n_2026_09_09_wages",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_133442_sb",
+  "item": "n_2026_09_10_trucking",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_133442_sb",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_133442_sb",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_133442_sb",
+  "item": "n_2026_09_12_gold",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_133442_sb",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_134527_sb",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_134527_sb",
+  "item": "n_2026_09_05_football",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_134527_sb",
+  "item": "n_2026_09_08_retail",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_134527_sb",
+  "item": "n_2026_09_11_cbr_rate_dup",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_134527_sb",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_134527_sb",
+  "item": "n_2026_09_14_ofz",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_134551_sb",
+  "item": "h_2026_09_08_pharma",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_134551_sb",
+  "item": "h_2026_09_11_rate_en",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_134551_sb",
+  "item": "n_2026_09_11_cbr_rate",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_134551_sb",
+  "item": "n_2026_09_12_gold",
+  "grade": 0,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_134551_sb",
+  "item": "n_2026_09_13_rate_cut_rumor",
+  "grade": 2,
+  "source": "llm_agreed",
+  "split": "test"
+ },
+ {
+  "company": "group_134551_sb",
+  "item": "n_2026_09_14_ofz",
+  "grade": 1,
+  "source": "llm_agreed",
+  "split": "test"
+ }
+]
