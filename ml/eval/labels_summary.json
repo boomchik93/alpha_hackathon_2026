@@ -1,0 +1,37 @@
+{
+ "models": {
+  "label_a": "deepseek/deepseek-v4.1-flash",
+  "label_b": "qwen/qwen3.6-35b-a3b"
+ },
+ "pairs": 1119,
+ "by_source": {
+  "human": 252,
+  "llm_agreed": 652,
+  "llm_disputed": 215
+ },
+ "model_vs_model": {
+  "n": 1119,
+  "exact": 0.7444146559428061,
+  "kappa_w": 0.708963263013997,
+  "kappa": 0.5734887446308604
+ },
+ "model_a_vs_human": {
+  "n": 252,
+  "exact": 0.75,
+  "kappa_w": 0.7688679245283019,
+  "kappa": 0.6074766355140186
+ },
+ "model_b_vs_human": {
+  "n": 252,
+  "exact": 0.6746031746031746,
+  "kappa_w": 0.6675977653631284,
+  "kappa": 0.48288288288288295
+ },
+ "agreed_vs_human": {
+  "n": 181,
+  "exact": 0.8011049723756906,
+  "kappa_w": 0.8080593849416755,
+  "kappa": 0.6847605224963715
+ },
+ "cost_rub": 26.015410463071532
+}
