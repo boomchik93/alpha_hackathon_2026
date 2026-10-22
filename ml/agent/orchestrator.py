@@ -17,7 +17,7 @@ from ml.agent import claim_verify, consistency
 from ml.agent.bank_quotes import assemble as assemble_bank_view, check_quotes
 from ml.agent.tools import RunContext, ToolRegistry
 from ml.agent.trace import Trace
-from ml.agent.verifier import good_bank_hits, llm_check, rule_check
+from ml.agent.verifier import good_bank_hits, item_topic_text, llm_check, rule_check
 from ml.config import settings
 from ml.errors import NotFound
 from ml.llm.client import LLMClient, LLMError, get_client
@@ -25,16 +25,16 @@ from ml.llm.router import model_name, route
 from ml.prompts import render
 from ml.roles import Role, card_suffix, role_block
 from ml.ranking.ranker import topic_titles
-from ml.topics import TOPICS
+from ml.topics import TOPICS, facet_titles
 from ml.schemas import (
     PROFILE_SOURCE_ID, CardMeta, CompanyProfile, InsightCard, InsightDraft, ParsedItem, SourceKind, SourceRef,
 )
 
 MAX_RETRIES = 2
-# Фрагментов банка в контексте: меньше соседних кусков, меньше «подтягивания» тезисов.
+# Фрагментов банка в контексте: меньше соседних кусков, меньше «подтягивания» тезисов (IMPROVEMENTS.md, A3 п.4, F2).
 BANK_K = 3
 BANK_PER_DOC = 2
-# Перепланирование по данным: окно соседних материалов и сколько их брать.
+# Перепланирование по данным (REVIEW_PLAN.md, T14): окно соседних материалов и сколько их брать.
 NEWS_WINDOW_DAYS = 3
 NEWS_LIMIT = 2
 MIN_CONFIRMED_FACTS = 2
@@ -52,7 +52,7 @@ def make_plan(profile: CompanyProfile, item: ParsedItem) -> list[dict]:
     """Какие данные нужны для этой пары. Решение записывается в трассу."""
     steps = [
         {"tool": "compute_exposure", "why": "найти признаки профиля, через которые событие влияет на компанию"},
-        {"tool": "search_bank_analytics", "why": "найти позицию банка по темам: " + (", ".join(topic_titles(item.topics)) or "тема события")},
+        {"tool": "search_bank_analytics", "why": "найти позицию банка по темам: " + (", ".join(_titles(item)) or "тема события")},
     ]
     if item.source.kind == SourceKind.bank_analytics:
         steps.insert(1, {"tool": "search_bank_analytics", "why": "материал сам из аналитики банка: взять его фрагменты", "doc": item.item_id})
@@ -64,17 +64,21 @@ def make_plan(profile: CompanyProfile, item: ParsedItem) -> list[dict]:
     return steps
 
 
+def _titles(item: ParsedItem) -> list[str]:
+    """Названия тем материала для запросов к аналитике банка; у широкой темы — подтема (ml.topics.FACETS)."""
+    return facet_titles(item.topics, item_topic_text(item))
+
+
 def _bank_query(profile: CompanyProfile, item: ParsedItem) -> str:
     facts = " ".join(f.text for f in item.facts[:3])
-    return f"{item.title} {facts} {' '.join(topic_titles(item.topics))} {profile.industry.okved_name or ''}"
+    return f"{item.title} {facts} {' '.join(_titles(item))} {profile.industry.okved_name or ''}"
 
 
 def _bank_queries(profile: CompanyProfile, item: ParsedItem) -> list[str]:
     """Общий запрос плюс по запросу на тему события: разные темы тянут разные документы банка."""
     qs = [_bank_query(profile, item)]
-    for t in item.topics[:3]:
-        if t in TOPICS:
-            qs.append(f"{TOPICS[t].title} {item.title}")
+    for title in _titles(item)[:3]:
+        qs.append(f"{title} {item.title}")
     return qs
 
 
@@ -199,7 +203,7 @@ def _related_block(extra_items: list[ParsedItem]) -> list[dict] | str:
 def replan(profile: CompanyProfile, item: ParsedItem, ctx: RunContext, tools: ToolRegistry, trace: Trace) -> None:
     """Шаги по результатам предыдущих шагов, каждый с причиной в трассе (событие `replan`)."""
     if item.topics and not good_bank_hits(ctx.bank_hits, item):
-        q = " ".join([*topic_titles(item.topics), item.event_type, profile.industry.okved_name or ""]).strip()
+        q = " ".join([*_titles(item), item.event_type, profile.industry.okved_name or ""]).strip()
         trace.log("replan", trigger="bank_miss", why="нет фрагмента банка с достаточным скором и общей темой: переформулировать запрос", query=q)
         tools.call("search_bank_analytics", query=q, k=6, include_stale=False)
     # У документа банка фактов нет по построению (ml.ingest.analytics.doc_items): его содержание приходит фрагментами
@@ -241,7 +245,7 @@ def run_insight(company_id: str, item_id: str, client: LLMClient | None = None, 
     contradiction = consistency.check_item(client, item, ctx.bank_hits, trace) if consistency.enabled() else None
     contradicts = bool(contradiction and contradiction.status == "contradicts")
 
-    # Стадия 1: каналы влияния до текста. None: стадия выключена.
+    # Стадия 1 (IMPROVEMENTS.md, A3): каналы влияния до текста. None: стадия выключена.
     kept_channels, dropped_channels = None, []
     if impact_channels.enabled():
         kept_channels, dropped_channels = impact_channels.extract(
@@ -254,7 +258,8 @@ def run_insight(company_id: str, item_id: str, client: LLMClient | None = None, 
     for attempt in range(MAX_RETRIES + 1):
         p = render(
             "interpret",
-            profile=profile.prompt_view(), reasons=[r[1] for r in ctx.exposure] or ["явных связей с профилем не найдено"],
+            profile=profile.prompt_view(), position=profile.position_phrase(),
+            reasons=[r[1] for r in ctx.exposure] or ["явных связей с профилем не найдено"],
             item=item.model_dump(mode="json", exclude={"dedup_cluster"}), item_source_id=item_source_id(item),
             bank_chunks=_bank_block(ctx.bank_hits) or "нет подходящих фрагментов",
             run_context=ctx.summary(), feedback=feedback, role_block=role_block(role), related_news=_related_block(ctx.extra_items),
@@ -301,7 +306,7 @@ def run_insight(company_id: str, item_id: str, client: LLMClient | None = None, 
         trace.retries += 1
         # Адаптация: если не хватает позиции банка, расширяем поиск, а не только переписываем текст.
         if any(i.startswith("bank_view пустой") for i in issues):
-            tools.call("search_bank_analytics", query=" ".join(topic_titles(item.topics)) + " " + item.title, k=6, include_stale=False)
+            tools.call("search_bank_analytics", query=" ".join(_titles(item)) + " " + item.title, k=6, include_stale=False)
         feedback = "ИСПРАВЬ ПРОБЛЕМЫ ПРЕДЫДУЩЕГО ОТВЕТА:\n- " + "\n- ".join(issues)
         trace.log("retry", attempt=attempt + 1, reason=issues)
 

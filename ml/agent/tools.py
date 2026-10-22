@@ -98,7 +98,7 @@ class ToolRegistry:
         return self._keep([(h, h.score) for h in hits])
 
     def _search_bank_analytics_multi(self, queries: list[str], k: int = 3, per_doc: int = 2, include_stale: bool = True) -> list[dict]:
-        """Несколько запросов, слияние RRF, не больше per_doc фрагментов с одного документа.
+        """Несколько запросов, слияние RRF, не больше per_doc фрагментов с одного документа (IMPROVEMENTS.md, F2).
 
         Разнообразие документов вместо соседних кусков одной страницы; скор фрагмента это лучший
         нормированный скор по запросам, чтобы пороги проверки работали как для одного запроса.

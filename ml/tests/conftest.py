@@ -16,6 +16,17 @@ def mock_llm(monkeypatch):
     monkeypatch.setattr(client_mod, "_default", client_mod.LLMClient(mock=True, use_cache=False))
 
 
+@pytest.fixture(autouse=True)
+def heuristic_feed():
+    """Тесты ленты проверяют эвристику и не зависят от обученной модели пары (ml/ranking/pair_model.json);
+    путь с моделью проверяется явно (test_pair_model.py)."""
+    from ml.ranking import ranker
+
+    ranker.set_model(None)
+    yield
+    ranker.clear_model()
+
+
 def _built() -> bool:
     return settings.paths.profiles.exists() and settings.paths.chunks.exists() and (settings.paths.var / "items.jsonl").exists()
 

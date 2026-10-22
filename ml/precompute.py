@@ -1,4 +1,4 @@
-"""Предрасчёт карточек для демо: лента -> топ-N -> карточка, валидные сохранённые пропускаются.
+"""Предрасчёт карточек для демо (REVIEW_PLAN.md, T18): лента -> топ-N -> карточка, валидные сохранённые пропускаются.
 
     python -m ml.precompute --dry-run                         # число карточек и оценка стоимости, вызовов нет
     python -m ml.precompute --companies demo --top 3 --max-rub 15 --workers 6
@@ -37,7 +37,7 @@ def plan(companies: list[str], top: int, role: Role | None) -> tuple[list[tuple[
     """(пары «компания, материал» без свежей сохранённой карточки; сколько карточек уже есть)."""
     todo, cached = [], 0
     for cid in companies:
-        for e in api.get_ranked_feed(cid, limit=top).entries[:top]:
+        for e in api.get_ranked_feed(cid, limit=top, tier="main").entries[:top]:
             if api.cached_insight(cid, e.item_id, role) is not None:
                 cached += 1
             else:

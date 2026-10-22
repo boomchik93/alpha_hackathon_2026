@@ -1,0 +1,814 @@
+[
+ {
+  "company": "U_10529",
+  "key": "U_10529",
+  "split": "dev",
+  "item": "r_4fe2fe4e0870",
+  "gold": 1
+ },
+ {
+  "company": "U_10529",
+  "key": "U_10529",
+  "split": "dev",
+  "item": "r_b14634591921",
+  "gold": 1
+ },
+ {
+  "company": "U_10529",
+  "key": "U_10529",
+  "split": "dev",
+  "item": "r_b57cb5f26471",
+  "gold": 1
+ },
+ {
+  "company": "U_105459",
+  "key": "U_105459",
+  "split": "dev",
+  "item": "r_4fe2fe4e0870",
+  "gold": 1
+ },
+ {
+  "company": "U_105459",
+  "key": "U_105459",
+  "split": "dev",
+  "item": "r_b14634591921",
+  "gold": 1
+ },
+ {
+  "company": "U_11496",
+  "key": "U_11496",
+  "split": "dev",
+  "item": "r_2c7dd35545ef",
+  "gold": 1
+ },
+ {
+  "company": "U_11496",
+  "key": "U_11496",
+  "split": "dev",
+  "item": "r_80d3a9fb6858",
+  "gold": 2
+ },
+ {
+  "company": "U_11496",
+  "key": "U_11496",
+  "split": "dev",
+  "item": "r_8c6b4263dd0c",
+  "gold": 2
+ },
+ {
+  "company": "U_11496",
+  "key": "U_11496",
+  "split": "dev",
+  "item": "r_b57cb5f26471",
+  "gold": 1
+ },
+ {
+  "company": "U_11496",
+  "key": "U_11496",
+  "split": "dev",
+  "item": "r_c8b03a3ca67f",
+  "gold": 1
+ },
+ {
+  "company": "U_150736",
+  "key": "U_150736",
+  "split": "dev",
+  "item": "r_f4862f786ff0",
+  "gold": 1
+ },
+ {
+  "company": "U_15728",
+  "key": "U_15728",
+  "split": "dev",
+  "item": "r_a1387a59890d",
+  "gold": 2
+ },
+ {
+  "company": "U_1595",
+  "key": "R",
+  "split": "dev",
+  "item": "r_546c272abf05",
+  "gold": 1
+ },
+ {
+  "company": "U_1595",
+  "key": "R",
+  "split": "dev",
+  "item": "r_5e0aa3bdb50a",
+  "gold": 1
+ },
+ {
+  "company": "U_1595",
+  "key": "R",
+  "split": "dev",
+  "item": "r_6b289f26b4a0",
+  "gold": 0
+ },
+ {
+  "company": "U_1595",
+  "key": "R",
+  "split": "dev",
+  "item": "r_c8b03a3ca67f",
+  "gold": 1
+ },
+ {
+  "company": "U_1595",
+  "key": "R",
+  "split": "dev",
+  "item": "r_f4862f786ff0",
+  "gold": 1
+ },
+ {
+  "company": "U_177581",
+  "key": "C",
+  "split": "dev",
+  "item": "r_a9bda059d9d9",
+  "gold": 1
+ },
+ {
+  "company": "U_177581",
+  "key": "C",
+  "split": "dev",
+  "item": "r_b57cb5f26471",
+  "gold": 1
+ },
+ {
+  "company": "U_177581",
+  "key": "C",
+  "split": "dev",
+  "item": "r_c8b03a3ca67f",
+  "gold": 1
+ },
+ {
+  "company": "U_177581",
+  "key": "C",
+  "split": "dev",
+  "item": "r_ccd5e12ed951",
+  "gold": 0
+ },
+ {
+  "company": "U_177581",
+  "key": "C",
+  "split": "dev",
+  "item": "r_cd86e0840fc5",
+  "gold": 0
+ },
+ {
+  "company": "U_183405",
+  "key": "B",
+  "split": "dev",
+  "item": "r_63cb94b668b2",
+  "gold": 0
+ },
+ {
+  "company": "U_190452",
+  "key": "U_190452",
+  "split": "dev",
+  "item": "r_b14634591921",
+  "gold": 1
+ },
+ {
+  "company": "U_200890",
+  "key": "M",
+  "split": "dev",
+  "item": "r_63cb94b668b2",
+  "gold": 0
+ },
+ {
+  "company": "U_200890",
+  "key": "M",
+  "split": "dev",
+  "item": "r_8c6b4263dd0c",
+  "gold": 0
+ },
+ {
+  "company": "U_200890",
+  "key": "M",
+  "split": "dev",
+  "item": "r_a1387a59890d",
+  "gold": 1
+ },
+ {
+  "company": "U_200890",
+  "key": "M",
+  "split": "dev",
+  "item": "r_ccd5e12ed951",
+  "gold": 0
+ },
+ {
+  "company": "U_202619",
+  "key": "U_202619",
+  "split": "dev",
+  "item": "r_a1387a59890d",
+  "gold": 1
+ },
+ {
+  "company": "U_212593",
+  "key": "U_212593",
+  "split": "dev",
+  "item": "r_c8b03a3ca67f",
+  "gold": 1
+ },
+ {
+  "company": "U_2222",
+  "key": "U_2222",
+  "split": "dev",
+  "item": "r_2c7dd35545ef",
+  "gold": 1
+ },
+ {
+  "company": "U_2222",
+  "key": "U_2222",
+  "split": "dev",
+  "item": "r_4fe2fe4e0870",
+  "gold": 2
+ },
+ {
+  "company": "U_2222",
+  "key": "U_2222",
+  "split": "dev",
+  "item": "r_546c272abf05",
+  "gold": 2
+ },
+ {
+  "company": "U_2222",
+  "key": "U_2222",
+  "split": "dev",
+  "item": "r_6b289f26b4a0",
+  "gold": 0
+ },
+ {
+  "company": "U_234228",
+  "key": "U_234228",
+  "split": "dev",
+  "item": "r_2acac9113ea9",
+  "gold": 0
+ },
+ {
+  "company": "U_234228",
+  "key": "U_234228",
+  "split": "dev",
+  "item": "r_4fe2fe4e0870",
+  "gold": 1
+ },
+ {
+  "company": "U_235727",
+  "key": "U_235727",
+  "split": "dev",
+  "item": "r_a1387a59890d",
+  "gold": 2
+ },
+ {
+  "company": "U_235727",
+  "key": "U_235727",
+  "split": "dev",
+  "item": "r_c8b03a3ca67f",
+  "gold": 1
+ },
+ {
+  "company": "U_26030",
+  "key": "F",
+  "split": "dev",
+  "item": "r_546c272abf05",
+  "gold": 1
+ },
+ {
+  "company": "U_26030",
+  "key": "F",
+  "split": "dev",
+  "item": "r_668bc28e92e9",
+  "gold": 2
+ },
+ {
+  "company": "U_26030",
+  "key": "F",
+  "split": "dev",
+  "item": "r_7dbea3accdc7",
+  "gold": 2
+ },
+ {
+  "company": "U_26030",
+  "key": "F",
+  "split": "dev",
+  "item": "r_80d3a9fb6858",
+  "gold": 2
+ },
+ {
+  "company": "U_26030",
+  "key": "F",
+  "split": "dev",
+  "item": "r_a1387a59890d",
+  "gold": 2
+ },
+ {
+  "company": "U_3263",
+  "key": "T",
+  "split": "dev",
+  "item": "r_5e0aa3bdb50a",
+  "gold": 1
+ },
+ {
+  "company": "U_3263",
+  "key": "T",
+  "split": "dev",
+  "item": "r_668bc28e92e9",
+  "gold": 2
+ },
+ {
+  "company": "U_3263",
+  "key": "T",
+  "split": "dev",
+  "item": "r_80d3a9fb6858",
+  "gold": 2
+ },
+ {
+  "company": "U_3263",
+  "key": "T",
+  "split": "dev",
+  "item": "r_8c6b4263dd0c",
+  "gold": 2
+ },
+ {
+  "company": "U_3263",
+  "key": "T",
+  "split": "dev",
+  "item": "r_a1387a59890d",
+  "gold": 2
+ },
+ {
+  "company": "U_34911",
+  "key": "U_34911",
+  "split": "dev",
+  "item": "r_2c7dd35545ef",
+  "gold": 1
+ },
+ {
+  "company": "U_34911",
+  "key": "U_34911",
+  "split": "dev",
+  "item": "r_5e0aa3bdb50a",
+  "gold": 2
+ },
+ {
+  "company": "U_34911",
+  "key": "U_34911",
+  "split": "dev",
+  "item": "r_c492bd77dabd",
+  "gold": 0
+ },
+ {
+  "company": "U_34911",
+  "key": "U_34911",
+  "split": "dev",
+  "item": "r_f4862f786ff0",
+  "gold": 1
+ },
+ {
+  "company": "U_3642",
+  "key": "U_3642",
+  "split": "dev",
+  "item": "r_c492bd77dabd",
+  "gold": 0
+ },
+ {
+  "company": "U_4217",
+  "key": "P",
+  "split": "dev",
+  "item": "r_14f2273deada",
+  "gold": 2
+ },
+ {
+  "company": "U_4217",
+  "key": "P",
+  "split": "dev",
+  "item": "r_2acac9113ea9",
+  "gold": 1
+ },
+ {
+  "company": "U_4217",
+  "key": "P",
+  "split": "dev",
+  "item": "r_9280aa7261c8",
+  "gold": 0
+ },
+ {
+  "company": "U_4217",
+  "key": "P",
+  "split": "dev",
+  "item": "r_b57cb5f26471",
+  "gold": 2
+ },
+ {
+  "company": "U_44792",
+  "key": "U_44792",
+  "split": "dev",
+  "item": "r_9280aa7261c8",
+  "gold": 0
+ },
+ {
+  "company": "U_44792",
+  "key": "U_44792",
+  "split": "dev",
+  "item": "r_b14634591921",
+  "gold": 1
+ },
+ {
+  "company": "U_44792",
+  "key": "U_44792",
+  "split": "dev",
+  "item": "r_c492bd77dabd",
+  "gold": 0
+ },
+ {
+  "company": "U_46045",
+  "key": "U_46045",
+  "split": "dev",
+  "item": "r_5e0aa3bdb50a",
+  "gold": 1
+ },
+ {
+  "company": "U_46045",
+  "key": "U_46045",
+  "split": "dev",
+  "item": "r_911c1a28e4c1",
+  "gold": 2
+ },
+ {
+  "company": "U_46045",
+  "key": "U_46045",
+  "split": "dev",
+  "item": "r_9280aa7261c8",
+  "gold": 0
+ },
+ {
+  "company": "U_46045",
+  "key": "U_46045",
+  "split": "dev",
+  "item": "r_c492bd77dabd",
+  "gold": 0
+ },
+ {
+  "company": "U_46045",
+  "key": "U_46045",
+  "split": "dev",
+  "item": "r_f4862f786ff0",
+  "gold": 1
+ },
+ {
+  "company": "U_4909",
+  "key": "U_4909",
+  "split": "dev",
+  "item": "r_4fe2fe4e0870",
+  "gold": 1
+ },
+ {
+  "company": "U_4909",
+  "key": "U_4909",
+  "split": "dev",
+  "item": "r_9280aa7261c8",
+  "gold": 0
+ },
+ {
+  "company": "U_4909",
+  "key": "U_4909",
+  "split": "dev",
+  "item": "r_b57cb5f26471",
+  "gold": 1
+ },
+ {
+  "company": "U_55440",
+  "key": "U_55440",
+  "split": "dev",
+  "item": "r_1d9055a239bd",
+  "gold": 0
+ },
+ {
+  "company": "U_55440",
+  "key": "U_55440",
+  "split": "dev",
+  "item": "r_546c272abf05",
+  "gold": 1
+ },
+ {
+  "company": "U_55440",
+  "key": "U_55440",
+  "split": "dev",
+  "item": "r_b57cb5f26471",
+  "gold": 1
+ },
+ {
+  "company": "U_6394",
+  "key": "U_6394",
+  "split": "dev",
+  "item": "r_4fe2fe4e0870",
+  "gold": 1
+ },
+ {
+  "company": "U_6394",
+  "key": "U_6394",
+  "split": "dev",
+  "item": "r_9280aa7261c8",
+  "gold": 0
+ },
+ {
+  "company": "U_6394",
+  "key": "U_6394",
+  "split": "dev",
+  "item": "r_c492bd77dabd",
+  "gold": 0
+ },
+ {
+  "company": "U_85265",
+  "key": "U_85265",
+  "split": "dev",
+  "item": "r_1d9055a239bd",
+  "gold": 0
+ },
+ {
+  "company": "U_85265",
+  "key": "U_85265",
+  "split": "dev",
+  "item": "r_b14634591921",
+  "gold": 1
+ },
+ {
+  "company": "U_86035",
+  "key": "U_86035",
+  "split": "dev",
+  "item": "r_9280aa7261c8",
+  "gold": 0
+ },
+ {
+  "company": "U_86035",
+  "key": "U_86035",
+  "split": "dev",
+  "item": "r_b14634591921",
+  "gold": 1
+ },
+ {
+  "company": "U_86035",
+  "key": "U_86035",
+  "split": "dev",
+  "item": "r_b57cb5f26471",
+  "gold": 1
+ },
+ {
+  "company": "U_88715",
+  "key": "U_88715",
+  "split": "dev",
+  "item": "r_4fe2fe4e0870",
+  "gold": 2
+ },
+ {
+  "company": "U_88715",
+  "key": "U_88715",
+  "split": "dev",
+  "item": "r_c8b03a3ca67f",
+  "gold": 1
+ },
+ {
+  "company": "U_99802",
+  "key": "U_99802",
+  "split": "dev",
+  "item": "r_a9bda059d9d9",
+  "gold": 0
+ },
+ {
+  "company": "U_99802",
+  "key": "U_99802",
+  "split": "dev",
+  "item": "r_ccd5e12ed951",
+  "gold": 0
+ },
+ {
+  "company": "group_132701_sb",
+  "key": "group_132701_sb",
+  "split": "dev",
+  "item": "r_1d9055a239bd",
+  "gold": 0
+ },
+ {
+  "company": "group_132701_sb",
+  "key": "group_132701_sb",
+  "split": "dev",
+  "item": "r_546c272abf05",
+  "gold": 1
+ },
+ {
+  "company": "group_132701_sb",
+  "key": "group_132701_sb",
+  "split": "dev",
+  "item": "r_f4862f786ff0",
+  "gold": 1
+ },
+ {
+  "company": "group_133442_sb",
+  "key": "group_133442_sb",
+  "split": "dev",
+  "item": "r_b57cb5f26471",
+  "gold": 1
+ },
+ {
+  "company": "group_134463_sb",
+  "key": "G",
+  "split": "dev",
+  "item": "r_14f2273deada",
+  "gold": 1
+ },
+ {
+  "company": "group_134463_sb",
+  "key": "G",
+  "split": "dev",
+  "item": "r_2c7dd35545ef",
+  "gold": 1
+ },
+ {
+  "company": "group_134463_sb",
+  "key": "G",
+  "split": "dev",
+  "item": "r_546c272abf05",
+  "gold": 1
+ },
+ {
+  "company": "group_134463_sb",
+  "key": "G",
+  "split": "dev",
+  "item": "r_c492bd77dabd",
+  "gold": 1
+ },
+ {
+  "company": "group_134463_sb",
+  "key": "G",
+  "split": "dev",
+  "item": "r_c8b03a3ca67f",
+  "gold": 1
+ },
+ {
+  "company": "group_134467_sb",
+  "key": "group_134467_sb",
+  "split": "dev",
+  "item": "r_2c7dd35545ef",
+  "gold": 1
+ },
+ {
+  "company": "group_134467_sb",
+  "key": "group_134467_sb",
+  "split": "dev",
+  "item": "r_5e0aa3bdb50a",
+  "gold": 1
+ },
+ {
+  "company": "group_134467_sb",
+  "key": "group_134467_sb",
+  "split": "dev",
+  "item": "r_b14634591921",
+  "gold": 1
+ },
+ {
+  "company": "group_134467_sb",
+  "key": "group_134467_sb",
+  "split": "dev",
+  "item": "r_f4862f786ff0",
+  "gold": 1
+ },
+ {
+  "company": "group_134527_sb",
+  "key": "group_134527_sb",
+  "split": "dev",
+  "item": "r_478b7ae1b4d8",
+  "gold": 0
+ },
+ {
+  "company": "group_134527_sb",
+  "key": "group_134527_sb",
+  "split": "dev",
+  "item": "r_4fe2fe4e0870",
+  "gold": 1
+ },
+ {
+  "company": "group_134527_sb",
+  "key": "group_134527_sb",
+  "split": "dev",
+  "item": "r_5e0aa3bdb50a",
+  "gold": 1
+ },
+ {
+  "company": "group_134527_sb",
+  "key": "group_134527_sb",
+  "split": "dev",
+  "item": "r_a1387a59890d",
+  "gold": 1
+ },
+ {
+  "company": "group_134527_sb",
+  "key": "group_134527_sb",
+  "split": "dev",
+  "item": "r_c492bd77dabd",
+  "gold": 0
+ },
+ {
+  "company": "group_134551_sb",
+  "key": "group_134551_sb",
+  "split": "dev",
+  "item": "r_2c7dd35545ef",
+  "gold": 1
+ },
+ {
+  "company": "group_134551_sb",
+  "key": "group_134551_sb",
+  "split": "dev",
+  "item": "r_546c272abf05",
+  "gold": 1
+ },
+ {
+  "company": "group_134551_sb",
+  "key": "group_134551_sb",
+  "split": "dev",
+  "item": "r_5e0aa3bdb50a",
+  "gold": 1
+ },
+ {
+  "company": "group_134551_sb",
+  "key": "group_134551_sb",
+  "split": "dev",
+  "item": "r_b14634591921",
+  "gold": 1
+ },
+ {
+  "company": "group_134551_sb",
+  "key": "group_134551_sb",
+  "split": "dev",
+  "item": "r_f4862f786ff0",
+  "gold": 1
+ },
+ {
+  "company": "group_134709_sb",
+  "key": "group_134709_sb",
+  "split": "dev",
+  "item": "r_2c7dd35545ef",
+  "gold": 1
+ },
+ {
+  "company": "group_134709_sb",
+  "key": "group_134709_sb",
+  "split": "dev",
+  "item": "r_546c272abf05",
+  "gold": 1
+ },
+ {
+  "company": "group_134709_sb",
+  "key": "group_134709_sb",
+  "split": "dev",
+  "item": "r_5e0aa3bdb50a",
+  "gold": 1
+ },
+ {
+  "company": "group_134709_sb",
+  "key": "group_134709_sb",
+  "split": "dev",
+  "item": "r_c8b03a3ca67f",
+  "gold": 1
+ },
+ {
+  "company": "group_134709_sb",
+  "key": "group_134709_sb",
+  "split": "dev",
+  "item": "r_ccd5e12ed951",
+  "gold": 0
+ },
+ {
+  "company": "group_134860_sb",
+  "key": "group_134860_sb",
+  "split": "dev",
+  "item": "r_2c7dd35545ef",
+  "gold": 1
+ },
+ {
+  "company": "group_134860_sb",
+  "key": "group_134860_sb",
+  "split": "dev",
+  "item": "r_668bc28e92e9",
+  "gold": 0
+ },
+ {
+  "company": "group_134860_sb",
+  "key": "group_134860_sb",
+  "split": "dev",
+  "item": "r_a1387a59890d",
+  "gold": 1
+ },
+ {
+  "company": "group_134860_sb",
+  "key": "group_134860_sb",
+  "split": "dev",
+  "item": "r_c492bd77dabd",
+  "gold": 0
+ },
+ {
+  "company": "group_134860_sb",
+  "key": "group_134860_sb",
+  "split": "dev",
+  "item": "r_f4862f786ff0",
+  "gold": 1
+ }
+]

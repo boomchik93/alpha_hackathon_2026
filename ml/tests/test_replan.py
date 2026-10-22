@@ -1,4 +1,4 @@
-"""Перепланирование по данным и инструмент search_news."""
+"""Перепланирование по данным и инструмент search_news (REVIEW_PLAN.md, T14)."""
 
 from datetime import date
 
