@@ -1,4 +1,4 @@
-"""Eval: компании x материалы, метрики качества ленты и карточек.
+"""Eval: компании x материалы, метрики из ML_SPEC.md, раздел 8.
 
     python -m ml.eval.run_eval                 # реальная модель, все пары
     python -m ml.eval.run_eval --mock          # сухой прогон без расходов
@@ -67,7 +67,7 @@ DISPUTED_VARIANTS = {"A": "оценка модели A", "B": "оценка мо
 
 
 def load_gold_v2_disputed(variant: str):
-    """Эталон v2 со спорными парами: согласованные и ручные как в load_gold_v2, спорным
+    """Эталон v2 со спорными парами (REVIEW_PLAN.md, T2): согласованные и ручные как в load_gold_v2, спорным
     ставится оценка модели A, модели B, минимум или максимум из двух (поля grade_a, grade_b)."""
     pick = {"A": lambda a, b: a, "B": lambda a, b: b, "min": min, "max": max}[variant]
     rows = [json.loads(l) for l in (EVAL_DIR / "labels.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
@@ -105,7 +105,7 @@ def eval_disputed(companies: list[dict], items: list) -> dict[str, dict[str, dic
 
 
 # ---------------------------------------------------------------------------
-# Переранжирование моделью: оценка Gemma для топ-N и материалов у порога, смесь с личным скором.
+# Переранжирование моделью (REVIEW_PLAN.md, T13): оценка Gemma для топ-N и материалов у порога, смесь с личным скором.
 # Оценка модели одна на пару и кэшируется, поэтому веса смеси сравниваются на одних и тех же вызовах.
 # ---------------------------------------------------------------------------
 
@@ -122,14 +122,14 @@ def rerank_plan(companies: list[dict], items: list) -> dict[str, tuple]:
     for c in companies:
         p = get_profile(c["id"])
         scored, _ = ranker.score_all(p, items)
-        out[c["id"]] = (p, scored, rerank.candidates(scored, ranker.MIN_SCORE))
+        out[c["id"]] = (p, scored, rerank.candidates(scored, ranker.min_score()))
     return out
 
 
 def _rerank_row(scored: list, gold: dict[str, int], c: dict) -> dict:
     from ml.ranking import ranker
 
-    kept = {s.item.item_id for s in scored if s.personal >= ranker.MIN_SCORE} & set(gold)
+    kept = {s.item.item_id for s in scored if s.personal >= ranker.min_score()} & set(gold)
     rel = {i for i, g in gold.items() if g >= 1}
     order = [s.item.item_id for s in scored if s.item.item_id in gold]
     return {"company": c["id"], "split": c.get("split"), "kept": len(kept), "false_pos": sorted(kept - rel), "missed": sorted(rel - kept),
@@ -215,6 +215,42 @@ def load_eval_items(mock: bool = False, cache_only: bool = False) -> tuple[list,
     return [i for i in demo if i.source.kind.value == "bank_analytics"] + news, news, holdout
 
 
+def load_real_items(mock: bool = False, cache_only: bool = False, split: str | None = None, name: str = "real") -> list:
+    """Реальные новости (`ml/eval/<name>_news.jsonl`, `ml.eval.collect_real`): разбор и сигналы материала, в память процесса.
+
+    split: dev, holdout или None (все). Разбор и сигналы платные при промахе кэша (Gemma на новость)."""
+    from ml.eval.collect_real import load_real
+    from ml.ingest.dedup import assign_clusters
+    from ml.ingest.importance import with_importance
+    from ml.ingest.parse_item import parse_item
+    from ml.ingest.store import add_items
+    from ml.llm.client import LLMClient
+
+    client = LLMClient(mock=mock, use_cache=True, cache_only=cache_only)
+    items = assign_clusters([with_importance(parse_item(r, client=client), r.text, client) for r in load_real(split, name)])
+    add_items(items)
+    return items
+
+
+def check_real_as_of(name: str = "real") -> None:
+    """Оценка на реальных новостях идёт с ML_AS_OF = дате сбора набора: от неё считаются свежесть и устаревание."""
+    from ml.eval.collect_real import set_paths
+
+    want = json.loads(set_paths(name)[1].read_text(encoding="utf-8"))["as_of"]
+    if settings.as_of.isoformat() != want:
+        sys.exit(f"для набора {name} нужен ML_AS_OF={want} (сейчас {settings.as_of}): запускайте с ML_AS_OF={want}")
+
+
+def load_gold_real(sources: tuple[str, ...] = ("llm_agreed", "human"), name: str = "real"):
+    """Эталон для реальных новостей (`ml/eval/labels_<name>.jsonl`); спорные пары исключаются."""
+    rows = [json.loads(l) for l in (EVAL_DIR / f"labels_{name}.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
+    table = {(r["company"], r["item"]): r["grade"] for r in rows if r["source"] in sources}
+
+    def gold(c: dict, item_id: str) -> int | None:
+        return table.get((c["id"], item_id))
+    return gold
+
+
 # ---------------------------------------------------------------------------
 # Ранжирование
 # ---------------------------------------------------------------------------
@@ -248,7 +284,7 @@ def eval_ranking(companies: list[dict], items: list, gold_fn=None) -> dict:
         p = get_profile(c["id"])
         gold = {iid: g for iid in pool_ids if (g := gold_fn(c, iid)) is not None}
         scored, _ = ranker.score_all(p, items)
-        kept = {s.item.item_id for s in scored if s.personal >= ranker.MIN_SCORE} & set(gold)
+        kept = {s.item.item_id for s in scored if s.personal >= ranker.min_score()} & set(gold)
         rel = {iid for iid, g in gold.items() if g >= 1}
         tp += len(kept & rel)
         fp += len(kept - rel)
@@ -284,7 +320,7 @@ def eval_ranking(companies: list[dict], items: list, gold_fn=None) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Бейзлайны ленты и метрика персонализации. Порядок по общей
+# Бейзлайны ленты и метрика персонализации (REVIEW_PLAN.md, T1). Порядок по общей
 # важности материала обходит ленту по nDCG@5, поэтому персонализацию показывает AUC
 # «кому показать материал», а не nDCG@5.
 # ---------------------------------------------------------------------------
@@ -371,6 +407,18 @@ def eval_baselines(companies: list[dict], items: list, gold_fn=None) -> dict[str
     pop = {c: popularity_loo(gold, c) for c in ids}
     pop_order = {c: sorted(pool_ids, key=lambda i: -pop[c].get(i, 0.0)) for c in ids}
     fresh = [i.item_id for i in sorted(pool, key=lambda i: -i.source.published_at.toordinal())]
+    # Честный неперсонализированный бейзлайн: важность материала от модели (ml/ingest/importance.py) знает только
+    # сам материал, а не разметку других компаний; в отличие от популярности так можно работать в бою.
+    imp = {i.item_id: i.importance for i in pool}
+    imp_order = sorted(pool_ids, key=lambda i: -imp[i])
+    # Уровни ленты (FEED_TIERS_PLAN.md): те же пары, личный скор и порядок системы.
+    from ml.ranking import pair_model as pm
+
+    by_id = {i.item_id: i for i in pool}
+    profiles = {c["id"]: get_profile(c["id"]) for c in companies}
+    tier_rows = {c: [pm.Row(c, iid, "", "eval", {}, g, 0.0, False, keep=ranker.IN_SECTOR_KEEPS and ranker.in_sector(profiles[c], by_id[iid]),
+                            floor=ranker.economy_floor(profiles[c], by_id[iid])) for iid, g in gold[c].items()] for c in ids}
+    tier_scores = {(c, s.item.item_id): (s.personal, s.score) for c, ss in scored.items() for s in ss}
 
     groups = {"все": ids}
     for name in ("dev", "test"):
@@ -390,9 +438,12 @@ def eval_baselines(companies: list[dict], items: list, gold_fn=None) -> dict[str
             "popularity": _order_metrics(pop_order, gold, cids),
             "random": {k: v / RANDOM_PERMUTATIONS for k, v in acc.items()},
             "freshness": _order_metrics({c: fresh for c in cids}, gold, cids),
-            "system_filter": _filter_metrics({c: {i for i, v in personal[c].items() if v >= ranker.MIN_SCORE} & set(gold[c]) for c in cids}, gold, cids),
+            "importance": _order_metrics({c: imp_order for c in cids}, gold, cids),
+            "system_filter": _filter_metrics({c: {i for i, v in personal[c].items() if v >= ranker.min_score()} & set(gold[c]) for c in cids}, gold, cids),
             "keep_all": _filter_metrics({c: set(gold[c]) for c in cids}, gold, cids),
             "keep_popular": _filter_metrics({c: {i for i in gold[c] if pop[c].get(i, 0.0) >= 0.5} for c in cids}, gold, cids),
+            "keep_important": _filter_metrics({c: {i for i in gold[c] if imp[i] >= 0.5} for c in cids}, gold, cids),
+            "tiers": pm.tier_metrics([r for c in cids for r in tier_rows[c]], tier_scores),
             "auc": material_auc(personal, gold, cids),  # внутри материала важность постоянна: личный скор и смесь дают один AUC
         }
     return out
@@ -400,9 +451,10 @@ def eval_baselines(companies: list[dict], items: list, gold_fn=None) -> dict[str
 
 def baselines_rows(b: dict) -> list[str]:
     """Строки таблицы порядка: система и бейзлайны."""
-    names = [("Система (лента)", "system"), ("Популярность: средняя оценка у других компаний (LOO)", "popularity"),
+    names = [("Система (лента)", "system"), ("Популярность: средняя оценка у других компаний (LOO, знает разметку)", "popularity"),
+             ("Важность материала (модель, без разметки)", "importance"),
              ("Свежесть: новые первыми", "freshness"), ("Случайный порядок (среднее 500 перестановок)", "random")]
-    return [f"| {n} | {_f(b[k]['ndcg5'], nd=3)} | {_f(b[k]['recall5'], True)} | {_f(b[k]['precision5'], True)} |" for n, k in names]
+    return [f"| {n} | {_f(b[k]['ndcg5'], nd=3)} | {_f(b[k]['recall5'], True)} | {_f(b[k]['precision5'], True)} |" for n, k in names if k in b]
 
 
 def baselines_lines(b: dict, title: str) -> list[str]:
@@ -411,8 +463,21 @@ def baselines_lines(b: dict, title: str) -> list[str]:
          "| Порядок | nDCG@5 | recall@5 | precision@5 |", "|---|---|---|---|", *baselines_rows(b), "",
          "| Отсев | precision | recall | F1 |", "|---|---|---|---|"]
     for n, k in (("Лента: система", "system_filter"), ("Оставить всё", "keep_all"),
-                 ("Оставить материалы с популярностью ≥ 0,5", "keep_popular")):
-        L += [f"| {n} | {_f(b[k]['precision'], True)} | {_f(b[k]['recall'], True)} | {_f(b[k]['f1'], True)} |"]
+                 ("Оставить материалы с популярностью ≥ 0,5 (знает разметку)", "keep_popular"),
+                 ("Оставить материалы с важностью ≥ 0,5 (без разметки)", "keep_important")):
+        if k in b:
+            L += [f"| {n} | {_f(b[k]['precision'], True)} | {_f(b[k]['recall'], True)} | {_f(b[k]['f1'], True)} |"]
+    if "tiers" in b:
+        from ml.ranking import ranker
+
+        t = b["tiers"]
+        L += ["", f"Уровни ленты: основная от {ranker.MAIN_SCORE}, «может быть» от {ranker.MIN_SCORE} (событие в отрасли компании всегда в основной).", "",
+              "| Уровень | precision | recall | F0.5 | precision@5 | пар |", "|---|---|---|---|---|---|",
+              f"| Основная | {_f(t['main']['precision'], True)} | {_f(t['main']['recall'], True)} | {_f(t['main']['f05'], True)} | "
+              f"{_f(t['main']['precision5'], True)} | {t['n_main']} |",
+              f"| Основная + «может быть» | {_f(t['both']['precision'], True)} | {_f(t['both']['recall'], True)} | | | {t['n_main'] + t['n_maybe']} |",
+              "", f"Нужного в блоке «может быть»: {_f(t['maybe_share_of_rel'], True)} от всех нужных пар; "
+                  f"доля нужных среди пар блока {_f(t['maybe_precision'], True)}."]
     L += ["", f"AUC «кому показать материал» по скору системы (материалов {a['n']}): медиана {_f(a['median'])}, "
               f"среднее с весом min(pos, neg) {_f(a['weighted'])}. У популярности AUC = 0,50 по построению. "
               "Худшие: " + "; ".join(f"`{x['item']}` {x['auc']:.2f} (+{x['pos']}/−{x['neg']})" for x in a["worst"]) + ".", ""]
@@ -420,18 +485,18 @@ def baselines_lines(b: dict, title: str) -> list[str]:
 
 
 # ---------------------------------------------------------------------------
-# Честная оценка ранжирования: параметры подбираются без
+# Честная оценка ранжирования (IMPROVEMENTS.md, E1): параметры подбираются без
 # оцениваемой компании, интервалы bootstrap по компаниям.
 # ---------------------------------------------------------------------------
 
-# Та же сетка, по которой параметры подбирались вручную.
+# Та же сетка, по которой параметры подбирались вручную (ml/eval/analysis.md).
 PARAM_GRID = {
     "ALPHA": (0.5, 0.6, 0.7),
     "MIN_SCORE": (0.2, 0.25, 0.3),
     "FEATURE_WEIGHT": (0.35, 0.45),
     "OFF_SECTOR_DAMP": (1.0, 0.5),
     "ADJACENCY_WEIGHT": (0.0, 0.25, 0.35, 0.45, 0.6),
-    "BETA": (0.0, 0.2, 0.35, 0.5),  # вес важности материала в порядке ленты
+    "BETA": (0.0, 0.2, 0.35, 0.5),  # вес важности материала в порядке ленты (REVIEW_PLAN.md, T11)
 }
 BOOTSTRAP_N = 2000
 
@@ -555,8 +620,9 @@ class Budget:
         return self.stopped
 
 
-# Судьи eval: две модели других семейств, чем интерпретатор (GLM).
+# Судьи eval (IMPROVEMENTS.md, E4): две модели других семейств, чем интерпретатор (GLM).
 JUDGES = ("eval_judge", "eval_judge_2")
+INJECTED_ITEM = "n_2026_09_06_noisy"  # синтетическая новость с внедрённой инструкцией (ml/fixtures/news.jsonl)
 
 
 @dataclass
@@ -578,7 +644,7 @@ class PairResult:
     channels: list[str] | None = None  # None: двухстадийная генерация выключена
     retries: int = 0
     first_try_schema_ok: bool = True
-    replans: list[str] = field(default_factory=list)  # триггеры перепланирования из трассы
+    replans: list[str] = field(default_factory=list)  # триггеры перепланирования из трассы (T14)
     json_repaired: bool = False  # клиент сам чинил JSON интерпретатора: first_try_schema_ok этого не видит
     final_issues: list[str] = field(default_factory=list)
     relevance: float | None = None
@@ -616,7 +682,8 @@ def check_card(card, profile, item, hits: dict[str, dict], r: PairResult) -> Non
     r.features_ok = bool(r.features) and all(
         p == "eligible_big" or _path_value(profile, p) not in (None, [], "") for p in r.features)
     text = card.model_dump_json()
-    r.injection_leak = bool(INJECTION.search(text)) or "обанкрот" in text.lower()
+    # «обанкрот» — маркер внедрённой инструкции в синтетической новости INJECTED_ITEM; в реальных новостях о банкротстве слово законно.
+    r.injection_leak = bool(INJECTION.search(text)) or (item.item_id == INJECTED_ITEM and "обанкрот" in text.lower())
     if card.bank_view:
         r.bank_view = True
         cited = [f"{hits[i]['title']} {hits[i]['text']}" for i in card.bank_view.source_ids if i in hits]
@@ -644,7 +711,7 @@ def judge_card(client, card, profile, item, hits: dict[str, dict], task: str = "
     from ml.ranking.ranker import score_item
 
     used = card.referenced_source_ids()
-    # Судья видит тот же контекст, что и модель: название документа и причины ранжирования.
+    # Судья видит тот же контекст, что и модель (IMPROVEMENTS.md, E4 п.2): название документа и причины ранжирования.
     chunks = [{"id": h["id"], "title": h.get("title"), "date": h["published_at"], "text": h["text"]}
               for h in hits.values() if h["id"] in used]
     reasons = [r[1] for r in score_item(profile, item).reasons] or ["явных связей с профилем не найдено"]
@@ -721,11 +788,25 @@ def run_pair(c: dict, item, client, budget: Budget, do_judge: bool, gold_fn=None
             v, cost = judge_card(client, card, profile, item, hits, task)
         except Exception as e:  # noqa: BLE001
             v, cost = {"error": f"{type(e).__name__}: {e}"[:300]}, 0.0
+        if "error" not in v:
+            v.update(unsupported_kinds(v.get("unsupported", []), card))
         if n == 0:
             r.judge, r.judge_cost_rub = v, cost
         else:
             r.judge2, r.judge2_cost_rub = v, cost
     return r
+
+
+def unsupported_kinds(unsupported: list[str], card) -> dict[str, int]:
+    """Замечания судьи по месту в карточке (STATUS_HANDOFF.md, п. 7): «как факт» — в тексте, поданном со ссылкой на источник
+    (что случилось, почему важно, мнение банка, последствия и действия с evidence); «гипотеза» — в выводе модели
+    (ai_inference и пункты с is_model_inference). Только «как факт» означает выдумку, поданную как факт."""
+    from ml.eval.judge_types import segs, where
+
+    ss = segs(card.model_dump(mode="json"))
+    places = [where(u, ss) for u in unsupported]
+    return {"unsupported_fact": sum(p == "sourced" for p in places), "unsupported_inference": sum(p == "inference" for p in places),
+            "unsupported_unplaced": sum(p == "не найдено" for p in places)}
 
 
 # ---------------------------------------------------------------------------
@@ -789,6 +870,12 @@ def aggregate(rs: list[PairResult]) -> dict:
         "judge_factual": _mean([r.judge["factual"] for r in judged]),
         "judge_factual_2": _share([r.judge["factual"] == 2 for r in judged]),
         "judge_with_unsupported": _share([bool(r.judge["unsupported"]) for r in judged]),
+        # Разделение замечаний (unsupported_kinds): выдумка, поданная как факт, против слабой помеченной гипотезы.
+        "judge_unsupported_as_fact": _share([r.judge.get("unsupported_fact", 0) + r.judge.get("unsupported_unplaced", 0) > 0
+                                             for r in judged if "unsupported_fact" in r.judge]),
+        "judge_unsupported_inference_only": _share([r.judge.get("unsupported_inference", 0) > 0
+                                                    and r.judge.get("unsupported_fact", 0) + r.judge.get("unsupported_unplaced", 0) == 0
+                                                    for r in judged if "unsupported_fact" in r.judge]),
         "judge_personalized": _mean([r.judge["personalized"] for r in judged]),
         "judge_actionable": _mean([r.judge["actionable"] for r in judged]),
         "judge_retells": _share([r.judge["retells_news"] for r in judged]),
@@ -919,7 +1006,16 @@ def write_ranking_report(run_id: str, ranking: dict, path: Path, cv: dict | None
          f"Параметры: ALPHA={ranker.ALPHA}, MIN_SCORE={ranker.MIN_SCORE}, FEATURE_WEIGHT={topics.FEATURE_WEIGHT}, "
          f"OFF_SECTOR_DAMP={ranker.OFF_SECTOR_DAMP}, ADJACENCY_WEIGHT={ranker.ADJACENCY_WEIGHT}, BETA={ranker.BETA}, "
          f"BROAD_WEIGHT_NO_HOOKS={ranker.BROAD_WEIGHT_NO_HOOKS}, смежность отраслей: {topics.ADJACENCY_SOURCE}, "
-         f"устаревшая аналитика банка (старше {ranker.STALE_AFTER_DAYS} дн.) в ленту не попадает.", ""]
+         f"устаревшая аналитика банка (старше {ranker.STALE_AFTER_DAYS} дн.) в ленту не попадает. "
+         f"Правила по масштабу события: ECONOMY_MIN_IMPORTANCE={ranker.ECONOMY_MIN_IMPORTANCE}, NARROW_NEEDS_SECTOR={ranker.NARROW_NEEDS_SECTOR}.", ""]
+    model = ranker.active_model()
+    if model is not None:
+        L += [f"Модель пары: `ml/ranking/pair_model.json` (обучена {model.get('trained_on', {}).get('date', '?')} на "
+              f"{', '.join(model.get('trained_on', {}).get('sets', []))}; w_model={model.get('w_model')}, order_mix={model.get('order_mix')}, "
+              f"beta={model.get('beta')}, l2={model.get('l2')}). **Метрики ниже на наборах v2 и real получены в выборке обучения модели "
+              "и завышены.** Честная оценка: перекрёстная проверка без одного дня (`python -m ml.ranking.pair_model cv`, "
+              "`ml/ranking/pair_model_cv.json`, сводка в `ml/eval/analysis.md`); итоговая цифра: свежий набор real2. "
+              "Сетка параметров эвристики при модели не считается.", ""]
     L += ranking_section(ranking)
     if cv:
         L += ranking_cv_section(ranking, cv)
@@ -936,14 +1032,16 @@ def write_report(run_id: str, args, ranking: dict, groups: dict[str, dict], rs: 
           + (f" и `{spend['judge2_model']}`" if spend.get("judge2_model") else "") + ". "
           f"Пар: {a['pairs']} ({spend['n_companies']} компаний, {spend['n_news']} новостей, из них {spend['n_holdout']} отложенных v1; набор {spend['set']}). "
           f"Кэш LLM отключён: стоимость и время честные.", ""]
-    L += ["Файл генерируется скриптом и перезаписывается при каждом прогоне.", ""]
-    L += [("Разметка релевантности ручная (`ml/eval/labels.py`), делалась по профилю, до прогона. " if spend["set"] == "v1" else
-           "Разметка релевантности: ручная для 9 исходных компаний, для остальных согласие двух LLM (`ml/eval/labels.jsonl`, "
-           "протокол `ml/eval/PROTOCOL.md`). ") +
+    L += ["Файл генерируется скриптом и перезаписывается при каждом прогоне. Ручной разбор и сравнение прогонов: `ml/eval/analysis.md`.", ""]
+    labels = {"v1": "Разметка релевантности ручная (`ml/eval/labels.py`), делалась по профилю, до прогона. ",
+              "real": "Набор real: реальные новости dev, фиксированные пары `ml/eval/card_pairs_real.json` (только пары из ленты); "
+                      "разметка релевантности: согласие двух LLM (`ml/eval/labels_real.jsonl`), ручной нет. "}
+    L += [labels.get(spend["set"], "Разметка релевантности: ручная для 9 исходных компаний, для остальных согласие двух LLM "
+                                   "(`ml/eval/labels.jsonl`, протокол `ml/eval/PROTOCOL.md`). ") +
           "Судьи LLM других моделей оценивают карточки; их оценки ориентир, не истина: калибровка `ml/eval/judge_review.py`.", ""]
 
     L += ["## Итог", ""]
-    L += ["| Метрика | Значение |", "|---|---|"]
+    L += ["| Метрика (ML_SPEC, раздел 8) | Значение |", "|---|---|"]
     rows = [
         ("Валидность схемы (карточка получена)", _f(a["schema_valid"], True)),
         ("Валидна с первой попытки", _f(a["first_try_schema_ok"], True)),
@@ -958,6 +1056,8 @@ def write_report(run_id: str, args, ranking: dict, groups: dict[str, dict], rs: 
         ("Карточки без замечаний по фактам (factual=2), судья 1 / 2", f"{_f(a['judge_factual_2'], True)} / {_f(a['judge2_factual_2'], True)}"),
         ("Карточки с неподтверждёнными утверждениями, судья 1 / 2",
          f"{_f(a['judge_with_unsupported'], True)} / {_f(a['judge2_with_unsupported'], True)}"),
+        ("  из них неподтверждённое подано как факт (судья 1)", _f(a.get("judge_unsupported_as_fact"), True)),
+        ("  из них только в помеченных выводах модели (судья 1)", _f(a.get("judge_unsupported_inference_only"), True)),
         ("Согласие судей: factual совпал / κ_w; «есть неподтверждённое» совпало",
          f"{_f(a['judges_factual_agree'], True)} / {_f(a['judges_factual_kappa'])}; {_f(a['judges_unsupported_agree'], True)}"),
         ("Персонализация: признаки профиля указаны и существуют", _f(a["features_ok"], True)),
@@ -1048,7 +1148,8 @@ def main(argv: list[str] | None = None) -> None:
                     help="с --ranking-only: оценка переранжирования моделью (ПЛАТНО, ~6-24 руб.); сначала --rerank-dry-run")
     ap.add_argument("--rerank-dry-run", action="store_true", help="число вызовов и оценка стоимости переранжирования, без вызовов")
     ap.add_argument("--limit", type=int, default=0, help="ограничить число пар (отладка)")
-    ap.add_argument("--set", choices=("v1", "v2"), default="v1",
+    ap.add_argument("--news-split", choices=("dev", "holdout"), help="real: только новости этой части (holdout не открывать до итоговой оценки)")
+    ap.add_argument("--set", choices=("v1", "v2", "real", "real2"), default="v1",
                     help="v1: 9 компаний x все новости, ручная разметка; v2: 40 компаний (dev/test), разметка labels.jsonl, "
                          "карточки по фиксированным парам card_pairs_v2.json")
     ap.add_argument("--split", choices=("dev", "test"), help="v2: только пары dev- или test-компаний (PROTOCOL.md: настройка только на dev)")
@@ -1072,17 +1173,25 @@ def main(argv: list[str] | None = None) -> None:
     ledger = SpendLedger()
     day0 = ledger.spent_today()
     client = LLMClient(mock=args.mock, use_cache=False)
-    if args.set == "v2":
+    real = args.set.startswith("real")
+    if real and not args.ranking_only and args.set != "real":
+        sys.exit(f"карточки на {args.set} не размечены парами: только --ranking-only")
+    if args.set == "v2" or real:
         from ml.eval.label_llm import load_v2
 
-        companies, gold_fn = load_v2(), load_gold_v2()
+        companies, gold_fn = load_v2(), (load_gold_v2() if args.set == "v2" else load_gold_real(name=args.set))
     else:
         companies, gold_fn = load_companies(), human_gold
     for c in companies:
         get_profile(c["id"])
     get_index()
 
-    items, news, holdout = load_eval_items(mock=args.mock, cache_only=args.ranking_only)
+    if real:
+        check_real_as_of(args.set)
+        items = news = load_real_items(mock=args.mock, cache_only=True, split=args.news_split, name=args.set)
+        holdout = []
+    else:
+        items, news, holdout = load_eval_items(mock=args.mock, cache_only=args.ranking_only)
     parse_rub = ledger.spent_today() - day0
     missing = [i.item_id for i in items if i.item_id not in LABELS]
     if missing and args.set == "v1":
@@ -1114,20 +1223,31 @@ def main(argv: list[str] | None = None) -> None:
     if args.set == "v2":
         ranking["label_sources"] = label_source_shares()
         ranking["disputed"] = eval_disputed(companies, items)
-    cv = eval_ranking_cv(companies, items, gold_fn)
-    print(f"ranking CV: P={cv['cv']['precision']:.2f} R={cv['cv']['recall']:.2f} nDCG@5={cv['cv']['ndcg5']:.2f} "
-          f"(in-sample nDCG@5 {cv['in_sample']['ndcg5']:.2f})", file=sys.stderr)
+    from ml.ranking import ranker
+
+    # Сетка эвристики (ALPHA, MIN_SCORE, ...) имеет смысл без модели пары; честная оценка модели: ml/ranking/pair_model_cv.json.
+    cv = eval_ranking_cv(companies, items, gold_fn) if ranker.active_model() is None else None
+    if cv:
+        print(f"ranking CV: P={cv['cv']['precision']:.2f} R={cv['cv']['recall']:.2f} nDCG@5={cv['cv']['ndcg5']:.2f} "
+              f"(in-sample nDCG@5 {cv['in_sample']['ndcg5']:.2f})", file=sys.stderr)
 
     if args.ranking_only:
         (out / "ranking.json").write_text(json.dumps({**ranking, "cv": cv}, ensure_ascii=False, indent=1), encoding="utf-8")
         write_ranking_report(run_id, ranking, Path(args.ranking_report), cv)
+        if real:
+            rp = Path(args.ranking_report)
+            rp.write_text(rp.read_text(encoding="utf-8").replace(
+                "Разметка: v1 ручная (`ml/eval/labels.py`), v2 ручная + согласованная двумя LLM (`ml/eval/labels.jsonl`).",
+                f"Набор {args.set}: реальные новости `ml/eval/{args.set}_news.jsonl` (часть {args.news_split or 'все'}), as_of {settings.as_of}; "
+                f"разметка: согласие двух LLM (`ml/eval/labels_{args.set}.jsonl`), ручной разметки нет."), encoding="utf-8")
         print(f"ranking report -> {args.ranking_report}; spent={ledger.spent_today() - day0:.3f} rub", file=sys.stderr)
         return
 
-    if args.set == "v2":
+    if args.set in ("v2", "real"):
+        # Фиксированные пары: v2 card_pairs_v2.json, real card_pairs_real.json (ml.eval.card_pairs_real, только новости dev).
         by_c, by_i = {c["id"]: c for c in companies}, {i.item_id: i for i in news}
-        fixed = json.loads((EVAL_DIR / "card_pairs_v2.json").read_text(encoding="utf-8"))
-        pairs = [(by_c[x["company"]], by_i[x["item"]]) for x in fixed if not args.split or x["split"] == args.split]
+        fixed = json.loads((EVAL_DIR / f"card_pairs_{args.set}.json").read_text(encoding="utf-8"))
+        pairs = [(by_c[x["company"]], by_i[x["item"]]) for x in fixed if (not args.split or x["split"] == args.split) and x["item"] in by_i]
     else:
         pairs = [(c, i) for c in companies for i in news]
     if args.limit:

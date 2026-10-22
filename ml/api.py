@@ -1,4 +1,4 @@
-"""Входы для бэкенда.
+"""Входы для бэкенда (ML_SPEC.md, раздел 11).
 
     build_profile(company_id) -> CompanyProfile
     list_companies()          -> list[CompanyProfile]
@@ -40,8 +40,9 @@ def list_companies() -> list[CompanyProfile]:
     return list_profiles()
 
 
-def get_ranked_feed(company_id: str, limit: int = 20) -> Feed:
-    return feed(get_profile(company_id), list(load_items().values()), limit)
+def get_ranked_feed(company_id: str, limit: int = 20, tier: str = "all", maybe_limit: int = 10) -> Feed:
+    """tier="main": только основная лента; "all" (по умолчанию): основная и блок «может быть интересно» (entries[].tier)."""
+    return feed(get_profile(company_id), list(load_items().values()), limit, maybe_limit, tier)
 
 
 def cached_insight(company_id: str, item_id: str, role: Role | None = None) -> InsightCard | None:

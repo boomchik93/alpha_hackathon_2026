@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -36,13 +37,18 @@ def _version(name: str, raw: str) -> str:
     return f"{name}@{m.group(1) if m else 'v0'}"
 
 
+def _path(name: str) -> Path:
+    """Файл промпта. ML_PROMPT_<NAME>=<файл без .md> подменяет его для абляции (например ML_PROMPT_INTERPRET=interpret_v12)."""
+    return DIR / f"{os.getenv(f'ML_PROMPT_{name.upper()}', name)}.md"
+
+
 def prompt_version(name: str) -> str:
     """Версия промпта в том же виде, что `Rendered.version` и `CardMeta.prompt_version`, без подстановки переменных."""
-    return _version(name, (DIR / f"{name}.md").read_text(encoding="utf-8"))
+    return _version(name, _path(name).read_text(encoding="utf-8"))
 
 
 def render(name: str, **vars: Any) -> Rendered:
-    raw = (DIR / f"{name}.md").read_text(encoding="utf-8")
+    raw = _path(name).read_text(encoding="utf-8")
     version = _version(name, raw)
     parts = re.split(r"^## (system|user)\s*$", raw, flags=re.M)
     sections = {parts[i]: parts[i + 1].strip() for i in range(1, len(parts) - 1, 2)}

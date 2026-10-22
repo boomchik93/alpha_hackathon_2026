@@ -5,6 +5,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
@@ -52,8 +54,8 @@ def profile(company_id: str):
 
 
 @app.get("/companies/{company_id}/feed", response_model=Feed)
-def ranked_feed(company_id: str, limit: int = 20):
-    return _guard(api.get_ranked_feed, company_id, limit)
+def ranked_feed(company_id: str, limit: int = 20, tier: Literal["main", "all"] = "all", maybe_limit: int = 10):
+    return _guard(api.get_ranked_feed, company_id, limit, tier, maybe_limit)
 
 
 @app.get("/companies/{company_id}/insights/{item_id}", response_model=InsightCard)

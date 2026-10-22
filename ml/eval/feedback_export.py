@@ -1,4 +1,4 @@
-"""Выгрузка обратной связи в разметку и калибровку.
+"""Выгрузка обратной связи в разметку и калибровку (REVIEW_PLAN.md, T16).
 
     python -m ml.eval.feedback_export [--out var/feedback_export]
 

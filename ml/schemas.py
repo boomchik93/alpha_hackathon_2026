@@ -119,6 +119,13 @@ class CompanyProfile(_Model):
         """Профиль для промпта: без пустых полей и служебных идентификаторов."""
         return self.model_dump(exclude_none=True, exclude={"member_ids"})
 
+    def position_phrase(self) -> str:
+        """Готовая формулировка положения для карточки (interpret, правило 12): без «крупнейший» и «лидер»."""
+        m = self.market_position
+        if m is None:
+            return "нет данных о положении: положение компании не упоминай"
+        return f"по выручке {m.rank}-я из {m.peers} компаний выборки банка с кодом ОКВЭД {m.okved_prefix}"
+
 
 # ---------------------------------------------------------------------------
 # ParsedItem
@@ -161,6 +168,8 @@ class ParsedItem(_Model):
     facts: list[Fact] = []
     freshness: float = Field(1.0, ge=0, le=1, description="1 = свежий, 0 = устаревший")
     importance: float = Field(0.5, ge=0, le=1, description="общая важность для экономики, не зависит от компании; 0,5 = не оценена")
+    scope: str | None = Field(None, description="масштаб события: economy, multi_sector, sector, company, none (ml/ingest/importance.py)")
+    channels: list[str] = Field([], description="каналы влияния из ml.topics.IMPACT_CHANNELS, оценка модели по тексту материала")
     noisy: bool = Field(False, description="исходный текст был зашумлён (OCR, сбои кодировки) и почищен при разборе")
     dedup_cluster: str | None = None
 
@@ -209,7 +218,7 @@ class BankQuote(_Model):
 
 
 class BankView(_Model):
-    # Модель возвращает цитаты; text собирает код из проверенных цитат.
+    # Модель возвращает цитаты; text собирает код из проверенных цитат (IMPROVEMENTS.md, A1).
     text: str = ""
     source_ids: list[str] = Field(min_length=1)
     quotes: list[BankQuote] = []
@@ -238,7 +247,7 @@ class SourceRef(_Model):
 
 
 class ImpactChannel(_Model):
-    """Канал влияния события на компанию (стадия 1 генерации). Ключи: ml.topics.IMPACT_CHANNELS."""
+    """Канал влияния события на компанию (стадия 1 генерации, IMPROVEMENTS.md A3). Ключи: ml.topics.IMPACT_CHANNELS."""
 
     channel: str
     strength: Literal["strong", "weak", "none"]
@@ -320,6 +329,7 @@ class FeedEntry(_Model):
     reasons: list[str]
     topics: list[str] = []
     stale: bool = False
+    tier: Literal["main", "maybe"] = Field("main", description="main: основная лента; maybe: блок «может быть интересно», связь с профилем слабая")
 
 
 class Feed(_Model):
@@ -327,6 +337,7 @@ class Feed(_Model):
     as_of: date
     entries: list[FeedEntry]
     filtered_out: int = Field(0, description="сколько материалов отсеяно как нерелевантные")
+    maybe_count: int = Field(0, description="сколько записей в блоке «может быть интересно» (tier=maybe); они идут после основной ленты")
 
 
 class FollowupAnswer(_Model):

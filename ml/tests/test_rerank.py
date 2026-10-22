@@ -1,4 +1,4 @@
-"""Переранжирование моделью."""
+"""Переранжирование моделью (REVIEW_PLAN.md, T13)."""
 
 from dataclasses import dataclass
 

@@ -1,4 +1,4 @@
-"""Разметка релевантности двумя LLM.
+"""Разметка релевантности двумя LLM (IMPROVEMENTS.md, E3).
 
     python -m ml.eval.label_llm             # все компании companies_v2.json x материалы eval
     python -m ml.eval.label_llm --mock
@@ -55,7 +55,13 @@ def materials(items: list) -> list[dict]:
              "facts": [f.text for f in i.facts[:4]]} for i in items]
 
 
-def label_company(client, task: str, profile, mats: list[dict]) -> dict[str, Label]:
+def label_company(client, task: str, profile, mats: list[dict], batch: int = 0) -> dict[str, Label]:
+    """Оценки модели для всех материалов; batch > 0: материалы частями (длинный список не помещается в ответ модели)."""
+    if batch and len(mats) > batch:
+        out: dict[str, Label] = {}
+        for k in range(0, len(mats), batch):
+            out.update(label_company(client, task, profile, mats[k:k + batch]))
+        return out
     from ml.prompts import render
 
     p = render("label_relevance", as_of=settings.as_of.isoformat(), profile=profile.prompt_view(), materials=mats)
@@ -87,7 +93,14 @@ def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--mock", action="store_true")
     ap.add_argument("--workers", type=int, default=6)
+    ap.add_argument("--set", choices=("v2", "real", "real2"), default="v2",
+                    help="real, real2: реальные новости ml/eval/<set>_news.jsonl (разбор платный при промахе кэша), запуск с ML_AS_OF из <set>_news.lock")
+    ap.add_argument("--batch", type=int, default=0, help="материалов на один вызов (0: все сразу, как для v2)")
+    ap.add_argument("--max-rub", type=float, default=0.0, help="остановить новые вызовы, когда расход прогона превысит лимит (0: без лимита)")
+    ap.add_argument("--force", action="store_true", help="real: перезаписать готовую разметку")
     args = ap.parse_args(argv)
+    if args.set.startswith("real"):
+        return main_real(args)
 
     from ml.eval.labels import DUPLICATES, LABELS
     from ml.eval.run_eval import load_eval_items
@@ -167,6 +180,65 @@ def main(argv: list[str] | None = None) -> None:
     (EVAL_DIR / "labels_summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=1), encoding="utf-8")
     print(json.dumps(summary, ensure_ascii=False, indent=1), file=sys.stderr)
     print(f"-> {LABELS_OUT}, на проверку {len(disputed)} пар -> {REVIEW_OUT}", file=sys.stderr)
+
+
+def main_real(args) -> None:
+    """Разметка реальных новостей: только две модели (ручной разметки нет), спорные пары в метрики не входят."""
+    from ml.eval.run_eval import check_real_as_of, load_real_items
+    from ml.llm.client import LLMClient, SpendLedger
+    from ml.llm.router import model_name, route
+    from ml.profile.build_profile import get_profile
+
+    check_real_as_of(args.set)
+    out = EVAL_DIR / f"labels_{args.set}.jsonl"
+    if out.exists() and not args.force:
+        sys.exit(f"{out.name} уже есть: разметка не перезаписывается без --force")
+    ledger = SpendLedger()
+    day0 = ledger.spent_today()
+    items = load_real_items(mock=args.mock, name=args.set)  # платно при промахе кэша: разбор и сигналы Gemma
+    parse_rub = ledger.spent_today() - day0
+    from ml.ingest.dedup import representatives
+
+    pool = representatives(items)
+    mats = materials(pool)
+    rep_of = {i.item_id: next((p.item_id for p in pool if p.dedup_cluster and p.dedup_cluster == i.dedup_cluster), i.item_id)
+              for i in items}
+    client = LLMClient(mock=args.mock, use_cache=True)
+    companies = load_v2()
+    print(f"разбор {parse_rub:.2f} руб.; материалов {len(mats)}, компаний {len(companies)}, пар {len(mats) * len(companies)}",
+          file=sys.stderr)
+
+    def run(c: dict) -> tuple[str, dict | None]:
+        if args.max_rub and ledger.spent_today() - day0 > args.max_rub:
+            return c["id"], None
+        prof = get_profile(c["id"])
+        return c["id"], {t: label_company(client, t, prof, mats, args.batch) for t in TASKS}
+
+    with ThreadPoolExecutor(args.workers) as ex:
+        got = dict(ex.map(run, companies))
+    rows, mm = [], ([], [])
+    for c in companies:
+        res = got.get(c["id"])
+        if res is None:
+            continue
+        for it in items:
+            rid = rep_of[it.item_id]
+            la, lb = res["label_a"].get(rid), res["label_b"].get(rid)
+            if la is None or lb is None:
+                continue
+            mm[0].append(la.grade)
+            mm[1].append(lb.grade)
+            row = {"company": c["id"], "key": c["key"], "split": c["split"], "item": it.item_id,
+                   "grade_a": la.grade, "grade_b": lb.grade, "reason_a": la.reason, "reason_b": lb.reason,
+                   "source": "llm_agreed" if la.grade == lb.grade else "llm_disputed", "grade": min(la.grade, lb.grade)}
+            rows.append(row)
+    out.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
+    summary = {"models": {t: model_name(route(t).family) for t in TASKS}, "as_of": settings.as_of.isoformat(), "pairs": len(rows),
+               "companies_labelled": sum(v is not None for v in got.values()),
+               "by_source": {s: sum(r["source"] == s for r in rows) for s in ("llm_agreed", "llm_disputed")},
+               "model_vs_model": agreement(*mm), "parse_rub": parse_rub, "cost_rub": ledger.spent_today() - day0}
+    (EVAL_DIR / f"labels_{args.set}_summary.json").write_text(json.dumps(summary, ensure_ascii=False, indent=1), encoding="utf-8")
+    print(json.dumps(summary, ensure_ascii=False, indent=1), file=sys.stderr)
 
 
 if __name__ == "__main__":
