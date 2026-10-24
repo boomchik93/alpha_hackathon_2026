@@ -1,0 +1,4 @@
+# Зависимости только сборщика новостей. В корневой requirements.lock ML-слоя не входят.
+feedparser
+requests
+trafilatura
