@@ -1,7 +1,7 @@
 PY := .venv/bin/python
 
 .PHONY: venv ocr vl vl-dry build profiles flows chunks items items-importance bm25 test serve eval-ranking \
-	real-pool real2-freeze real2-label real2-review real2-eval pair-model-cv pair-model pair-model-calibrate tier-check
+	real-pool real2-freeze real2-label real2-review real2-eval pair-model-cv pair-model pair-model-calibrate tier-check \n	backend-test backend-serve
 
 venv:
 	python3.13 -m venv .venv && .venv/bin/pip install -r requirements.txt
@@ -91,3 +91,10 @@ test:
 
 serve:
 	.venv/bin/uvicorn ml.server:app --port 8001 --reload
+
+# API бэкенда для фронта (backend/app) на :8000; ML-сервис должен быть поднят (`make serve`).
+backend-test:
+	$(PY) -m pytest -q backend/tests
+
+backend-serve:
+	.venv/bin/uvicorn backend.app.main:app --port 8000 --reload
