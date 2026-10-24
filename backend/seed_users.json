@@ -1,0 +1,11 @@
+[
+  {"login": "retail.owner", "password": "demo-owner-1595", "display_name": "Собственник, розница одеждой", "role": "owner", "access": "user", "companies": ["U_1595"]},
+  {"login": "retail.cfo", "password": "demo-cfo-1595", "display_name": "Финансовый директор, розница одеждой", "role": "cfo", "access": "user", "companies": ["U_1595"]},
+  {"login": "retail.treasurer", "password": "demo-treasurer-1595", "display_name": "Казначей, розница одеждой", "role": "treasurer", "access": "user", "companies": ["U_1595"]},
+  {"login": "fuel.ceo", "password": "demo-ceo-26030", "display_name": "Генеральный директор, опт моторным топливом", "role": "ceo", "access": "user", "companies": ["U_26030"]},
+  {"login": "logistics.cfo", "password": "demo-cfo-3263", "display_name": "Финансовый директор, грузоперевозки", "role": "cfo", "access": "user", "companies": ["U_3263"]},
+  {"login": "build.accountant", "password": "demo-acc-183405", "display_name": "Главный бухгалтер, опт стройматериалами (данные с пропусками)", "role": "chief_accountant", "access": "user", "companies": ["U_183405"]},
+  {"login": "group.cfo", "password": "demo-cfo-group", "display_name": "Финансовый директор группы, бетонные смеси", "role": "cfo", "access": "user", "companies": ["group_134463_sb"]},
+  {"login": "expert", "password": "demo-expert", "display_name": "Эксперт банка", "role": "other", "access": "expert", "companies": []},
+  {"login": "admin", "password": "demo-admin", "display_name": "Администратор", "role": "other", "access": "admin", "companies": []}
+]
