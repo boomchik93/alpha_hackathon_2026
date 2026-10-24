@@ -22,6 +22,7 @@ from backend.app.db import DB, iso
 from backend.app.errors import ERROR_RESPONSES, ApiError, ErrorBody, not_found
 from backend.app.jobs import Job, JobManager
 from backend.app.ml_client import MLClient
+from backend.app.ratelimit import RateLimiter
 from backend.app.sources import pdf_path
 
 router = APIRouter(prefix="/api", responses={401: {"model": ErrorBody}, 403: {"model": ErrorBody}, **ERROR_RESPONSES})
@@ -47,6 +48,14 @@ def _db(request: Request) -> DB:
 
 def _settings(request: Request) -> Settings:
     return request.app.state.settings
+
+
+def _limiter(request: Request) -> RateLimiter:
+    return request.app.state.limiter
+
+
+LIMIT_WINDOW_S = 600   # окно лимитов на карточки и вопросы
+LOGIN_WINDOW_S = 300   # окно лимита неудачных входов
 
 
 # --- служебное и вход ------------------------------------------------------------
@@ -87,11 +96,19 @@ class LoginOut(BaseModel):
 
 @router.post("/auth/login", response_model=LoginOut)
 async def login(request: Request, body: LoginIn) -> LoginOut:
-    db = _db(request)
+    db, settings, limiter = _db(request), _settings(request), _limiter(request)
+    ip = request.client.host if request.client else "unknown"
+    by_login, by_ip = ("login", body.login.lower()), ("login_ip", ip)
+    message = "слишком много неудачных попыток входа, подождите"
+    limiter.check(by_login, settings.limit_login_failures_per_login, LOGIN_WINDOW_S, message)
+    limiter.check(by_ip, settings.limit_login_failures_per_ip, LOGIN_WINDOW_S, message)
     row = db.authenticate(body.login, body.password)
     if row is None:
-        db.audit("login_failed", detail=body.login)
+        limiter.record(by_login, LOGIN_WINDOW_S)
+        limiter.record(by_ip, LOGIN_WINDOW_S)
+        db.audit("login_failed", detail=f"{body.login} {ip}")
         raise unauthorized("неверный логин или пароль")
+    limiter.reset(by_login)
     db.prune_sessions()
     token, expires = db.create_session(row["id"], request.app.state.session_ttl)
     db.audit("login", row["id"])
@@ -232,7 +249,11 @@ async def insight(request: Request, user: CurrentUser, company_id: Id, item_id: 
 
     db.audit("insight", user.id, company_id=company_id, item_id=item_id, detail=card_role)
     jobs = _jobs(request)
-    job = jobs.submit(("insight", company_id, item_id, card_role), work)
+    key = ("insight", company_id, item_id, card_role)
+    if jobs.active(key) is None:  # присоединение к идущей генерации бесплатно
+        _limiter(request).hit(("insight", user.id), settings.limit_insights_per_10m, LIMIT_WINDOW_S,
+                              "слишком много новых карточек за 10 минут, подождите")
+    job = jobs.submit(key, work)
     job.viewers.add(user.id)
     await jobs.wait(job, settings.insight_sync_wait_s)
     if job.status == "failed" and job.error is not None:
@@ -273,7 +294,10 @@ async def followup(request: Request, user: CurrentUser, card_id: Id, q: Question
     if not q.question.strip():
         raise ApiError(422, "validation_error", "вопрос пустой")
     card = await _card_for(request, user, card_id)
-    answer = await _ml(request).post(f"/cards/{card_id}/followup", params={"role": effective_role(user, role)},
+    card_role = effective_role(user, role)
+    _limiter(request).hit(("followup", user.id), _settings(request).limit_followups_per_10m, LIMIT_WINDOW_S,
+                          "слишком много вопросов за 10 минут, подождите")
+    answer = await _ml(request).post(f"/cards/{card_id}/followup", params={"role": card_role},
                                      json={"question": q.question}, timeout_s=_settings(request).ml_followup_timeout_s)
     _db(request).audit("followup", user.id, company_id=card["company_id"], card_id=card_id,
                        trace_id=answer.get("trace_id"), detail=q.question)

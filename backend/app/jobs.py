@@ -62,6 +62,10 @@ class JobManager:
         job.task = asyncio.create_task(self._run(job, work), name=job.id)
         return job
 
+    def active(self, key: tuple) -> Job | None:
+        """Задача, которая сейчас идёт по этому ключу: запрос к ней не запускает новую генерацию."""
+        return self._active_by_key.get(key)
+
     async def _run(self, job: Job, work: Callable[[], Awaitable[Any]]) -> None:
         try:
             async with self._sem:

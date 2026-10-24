@@ -18,6 +18,7 @@ from backend.app.config import Settings
 from backend.app.db import DB, load_seed
 from backend.app.jobs import JobManager
 from backend.app.ml_client import MLClient
+from backend.app.ratelimit import RateLimiter
 from backend.app.routes import router
 
 log = logging.getLogger("backend")
@@ -32,9 +33,10 @@ def create_app(settings: Settings | None = None, ml_transport: httpx.AsyncBaseTr
         app.state.settings = settings
         app.state.session_ttl = timedelta(hours=settings.session_ttl_h)
         app.state.db = DB(settings.db_path)
-        if settings.seed_path:
+        if settings.seed_path != "off":
             log.info("тестовые учётные записи: %s из %s", load_seed(app.state.db, Path(settings.seed_path)), settings.seed_path)
         app.state.group_members = {}
+        app.state.limiter = RateLimiter()
         app.state.ml = MLClient(settings.ml_url, settings.ml_timeout_s, transport=ml_transport)
         app.state.jobs = JobManager(settings.max_parallel_generations, settings.max_queued_jobs, settings.job_ttl_s)
         try:
