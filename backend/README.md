@@ -30,8 +30,8 @@ ML-слой уже работает как сервис (`make serve` в кор�
 
 ## API для фронта (`backend/app`)
 
-Стек: FastAPI + httpx, Python 3.13 (как у ML). ML-сервис вызывается по HTTP, пакет `ml` бэкенд не импортирует.
-Фронт ходит только сюда; ML на :8001 наружу не выставляется.
+Стек: FastAPI + httpx, SQLite (стандартная библиотека), Python 3.13 (как у ML). ML-сервис вызывается по HTTP,
+пакет `ml` бэкенд не импортирует. Фронт ходит только сюда; ML на :8001 наружу не выставляется.
 
 ```bash
 make serve           # ML на :8001 (без ключа: LLM_MOCK=1 в .env)
@@ -41,20 +41,61 @@ make backend-test    # тесты: настоящий ml.server в том же �
 
 На Windows без make: `uvicorn backend.app.main:app --port 8000` и `python -m pytest backend/tests` из корня репозитория.
 Настройки (`BACKEND_*`) в [`.env.example`](../.env.example), значения по умолчанию в [`app/config.py`](app/config.py).
+База `var/backend.db` (в `.gitignore`) создаётся при первом старте.
+
+### Вход и тестовые учётные записи
+
+`POST /api/auth/login {login, password}` возвращает `{token, expires_at, user}`. Дальше каждый запрос идёт с заголовком
+`Authorization: Bearer <token>`. Сессия живёт 7 дней (`BACKEND_SESSION_TTL_H`), `POST /api/auth/logout` её закрывает.
+
+Учётные записи для демо создаются при старте из [`seed_users.json`](seed_users.json). Пароли лежат там же, в базе только scrypt-хэши.
+
+| Логин | Роль | Доступ | Компании |
+|---|---|---|---|
+| `retail.owner`, `retail.cfo`, `retail.treasurer` | собственник, финдиректор, казначей | user | `U_1595` (розница одеждой): три роли на одну компанию |
+| `fuel.ceo` | генеральный директор | user | `U_26030` (опт топливом) |
+| `logistics.cfo` | финансовый директор | user | `U_3263` (грузоперевозки) |
+| `build.accountant` | главный бухгалтер | user | `U_183405` (трудная: нет продуктов и платежей) |
+| `group.cfo` | финансовый директор | user | `group_134463_sb` и компании группы |
+| `expert` | без роли | expert | любые; оценки экспертов в сводке отдельно |
+| `admin` | без роли | admin | любые; журнал обращений |
+
+Пароли демо-записей лежат в репозитории. Перед публичным деплоем поменяйте их в сиде или укажите свой файл в `BACKEND_SEED_PATH`.
+
+### Доступ
+
+- Пользователь видит только свои компании. Привязка к группе даёт доступ к группе и её компаниям (`member_ids` профиля).
+- Роль карточки и ответа берётся из профиля пользователя, фронт её не передаёт. Эксперт и админ могут выбрать роль параметром `role`
+  и открыть любую компанию (демо-переключатель).
+- Вопрос, оценка и трасса доступны только по карточкам, которые бэкенд уже отдавал, и только тем, у кого есть доступ к компании карточки.
+- Журнал обращений (таблица `audit`): входы и неудачные попытки, открытые карточки, вопросы (с текстом и `trace_id`), оценки,
+  трассы и документы.
+
+### Ручки
 
 | HTTP | Ответ |
 |---|---|
-| `GET /api/health` | `{ok, ml_ok, llm_mock, spent_today_rub, budget_rub}`; при недоступном ML `ml_ok=false` и `ml_error` |
-| `GET /api/companies` | список компаний и групп |
+| `GET /api/health` | `{ok, ml_ok, llm_mock, spent_today_rub, budget_rub}`; при недоступном ML `ml_ok=false` и `ml_error`. Без входа |
+| `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/me` | вход, выход, `{login, display_name, role, access, companies}` |
+| `GET /api/me/summary?company_id=` | виджет главного экрана: `{company_id, new_count, top, as_of, updated_at}`; по умолчанию первая компания пользователя |
+| `GET /api/companies` | доступные компании и группы |
 | `GET /api/companies/{id}` | `CompanyProfile` |
-| `GET /api/companies/{id}/feed?tier=all\|main&limit=1..50&maybe_limit=0..50` | `Feed`; блок «может быть интересно» в `entries[].tier == "maybe"` |
-| `GET /api/companies/{id}/insights/{item_id}?role=` | `200` + `InsightCard`, если готова; иначе `202` + задача (ниже) |
+| `GET /api/companies/{id}/feed` | `Feed` плюс `entries[].is_new`, `new_count`, `fetched_at`; фильтры ниже |
+| `GET /api/companies/{id}/insights/{item_id}` | `200` и `InsightCard`, если карточка готова; иначе `202` и задача (ниже). Отмечает материал просмотренным |
 | `GET /api/jobs/{job_id}` | состояние генерации: `queued/running/done/failed`, `card` или `error` |
-| `POST /api/cards/{card_id}/followup?role=` `{question}` | `FollowupAnswer`, вопрос до 500 символов |
-| `POST /api/cards/{card_id}/feedback` `{rating, reason?, comment?, role?}` | запись оценки в ML |
+| `POST /api/cards/{card_id}/followup` `{question}` | `FollowupAnswer`, вопрос до 500 символов |
+| `POST /api/cards/{card_id}/feedback` `{rating, reason?, comment?}` | `{ok, card_id, synced_to_ml}`: оценка в базе бэкенда и копия в ML |
+| `GET /api/cards/{card_id}/trace` | трасса. Пользователю: план, инструменты, повторы, перепланирование, источники, признаки профиля. Эксперту и админу ещё `cost_rub` и полная трасса `raw` |
+| `GET /api/sources/{doc_id}/pdf` | PDF аналитики банка по `SourceRef.doc_id`; страница открывается фрагментом `#page=N` из `SourceRef.page` |
+| `GET /api/feedback/summary` | эксперт и админ: доля «не полезно» и причины отдельно для пользователей и экспертов, по ролям; `ml`: сводка ML по версиям промпта |
+| `GET /api/admin/audit?limit=` | админ: журнал обращений, новые сверху |
 
-`role`: `owner/ceo/cfo/treasurer/chief_accountant/other`. Пока нет авторизации, роль приходит параметром; потом её возьмём из сессии.
-Трассы (`/traces`) наружу пока не выставлены: ML отдаёт их целиком, урезанный вид для пользователя будет на этапе 2.
+Фильтры ленты: `tier=all|main|maybe`, `source_kind=news|bank_analytics`, `topic` (ключ из `entries[].topics`),
+`date_from` и `date_to` (`YYYY-MM-DD`), `hide_stale=true`, `limit=1..50`, `maybe_limit=0..50`. `limit` ограничивает выдачу ML
+до фильтров, поэтому после фильтров записей может быть меньше. «Новое» означает, что пользователь ещё не открывал карточку материала;
+`new_count` считается по основной ленте без учёта фильтров.
+
+PDF требует токен, поэтому обычная ссылка не подойдёт: скачайте файл с заголовком, создайте blob-ссылку и откройте её с `#page=N`.
 
 ### Карточка без зависания фронта
 
@@ -66,6 +107,7 @@ make backend-test    # тесты: настоящий ml.server в том же �
 Повторный запрос той же карточки (компания, материал, роль), пока она генерируется, возвращает ту же задачу и не тратит бюджет.
 Одновременно идёт не больше `BACKEND_MAX_PARALLEL_GENERATIONS` генераций, очередь ограничена `BACKEND_MAX_QUEUED_JOBS`.
 Задачи живут в памяти процесса: бэкенд запускается одним процессом, а после перезапуска карточка всё равно лежит в кэше ML.
+Задачу видят только те, кто запросил эту карточку, а также эксперт и админ.
 
 ### Ошибки
 
@@ -74,7 +116,9 @@ make backend-test    # тесты: настоящий ml.server в том же �
 
 | Статус | `code` | Когда |
 |---|---|---|
-| 404 | `not_found` | нет компании, материала, карточки, задачи или ручки |
+| 401 | `unauthorized` | нет токена, токен неверный или истёк, неверный логин или пароль |
+| 403 | `forbidden` | нет доступа к компании, чужая роль, ручка только для эксперта или админа |
+| 404 | `not_found` | нет компании, материала, карточки, задачи, документа или ручки |
 | 422 | `validation_error` | неверные параметры или тело запроса |
 | 429 | `budget_exceeded` | дневной бюджет моделей исчерпан, `retry_after` до сброса в 3:00 МСК; готовые карточки по-прежнему отдаются |
 | 429 | `queue_full` | слишком много карточек в очереди |
@@ -91,7 +135,9 @@ backend/
   README.md          этот файл
   PLAN.md            план работ
   requirements.txt   зависимости API (версии как в requirements.lock)
-  app/               API: main.py (сборка), routes.py (ручки), ml_client.py, jobs.py, errors.py, config.py
+  seed_users.json    тестовые учётные записи для демо
+  app/               API: main.py (сборка), routes.py (ручки), auth.py (вход и доступ), db.py (SQLite),
+                     ml_client.py, jobs.py, errors.py, sources.py (PDF аналитики), config.py
   tests/             тесты API на моке ML
 ```
 

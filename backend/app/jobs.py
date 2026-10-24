@@ -35,6 +35,8 @@ class Job:
     result: Any = None
     error: ApiError | None = None
     task: asyncio.Task | None = field(default=None, repr=False)
+    # Пользователи, запросившие эту карточку: только они видят задачу по job_id.
+    viewers: set[int] = field(default_factory=set)
 
     def set(self, status: Status) -> None:
         self.status, self.updated_at = status, time.time()

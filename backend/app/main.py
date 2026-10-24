@@ -6,6 +6,8 @@ from __future__ import annotations
 
 import logging
 from contextlib import asynccontextmanager
+from datetime import timedelta
+from pathlib import Path
 
 import httpx
 from fastapi import FastAPI
@@ -13,9 +15,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app import errors
 from backend.app.config import Settings
+from backend.app.db import DB, load_seed
 from backend.app.jobs import JobManager
 from backend.app.ml_client import MLClient
 from backend.app.routes import router
+
+log = logging.getLogger("backend")
 
 
 def create_app(settings: Settings | None = None, ml_transport: httpx.AsyncBaseTransport | None = None) -> FastAPI:
@@ -25,6 +30,11 @@ def create_app(settings: Settings | None = None, ml_transport: httpx.AsyncBaseTr
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         app.state.settings = settings
+        app.state.session_ttl = timedelta(hours=settings.session_ttl_h)
+        app.state.db = DB(settings.db_path)
+        if settings.seed_path:
+            log.info("тестовые учётные записи: %s из %s", load_seed(app.state.db, Path(settings.seed_path)), settings.seed_path)
+        app.state.group_members = {}
         app.state.ml = MLClient(settings.ml_url, settings.ml_timeout_s, transport=ml_transport)
         app.state.jobs = JobManager(settings.max_parallel_generations, settings.max_queued_jobs, settings.job_ttl_s)
         try:
@@ -32,6 +42,7 @@ def create_app(settings: Settings | None = None, ml_transport: httpx.AsyncBaseTr
         finally:
             await app.state.jobs.shutdown()
             await app.state.ml.aclose()
+            app.state.db.close()
 
     app = FastAPI(title="alpha-hack backend", version="0.1", lifespan=lifespan)
     app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origins, allow_methods=["GET", "POST"],
