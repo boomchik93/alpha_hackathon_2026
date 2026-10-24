@@ -1,10 +1,13 @@
 # docker compose up --build          # реальные модели, если в .env заданы LLM_BASE_URL и LLM_API_KEY
 # LLM_MOCK=1 docker compose up --build   # без ключа, на моке (тексты карточек помечены [MOCK])
+#
+# Наружу открыт только бэкенд (:8000). ML слушает 127.0.0.1:8001: он без авторизации и отдаёт трассы целиком,
+# поэтому доступен только с этой машины (для разработки) и бэкенду внутри сети compose.
 services:
   ml:
     build: .
     ports:
-      - "8001:8001"
+      - "127.0.0.1:8001:8001"
     env_file:
       - path: .env
         required: false
@@ -20,3 +23,32 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    # .env целиком сюда не передаётся: ключ к моделям бэкенду не нужен. Настройки BACKEND_* берутся из .env через подстановку.
+    environment:
+      - BACKEND_ML_URL=http://ml:8001
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-}
+      - BACKEND_SEED_PATH=${BACKEND_SEED_PATH:-}
+      - BACKEND_INSIGHT_SYNC_WAIT_S=${BACKEND_INSIGHT_SYNC_WAIT_S:-}
+      - BACKEND_MAX_PARALLEL_GENERATIONS=${BACKEND_MAX_PARALLEL_GENERATIONS:-}
+      - BACKEND_LIMIT_INSIGHTS_PER_10M=${BACKEND_LIMIT_INSIGHTS_PER_10M:-}
+      - BACKEND_LIMIT_FOLLOWUPS_PER_10M=${BACKEND_LIMIT_FOLLOWUPS_PER_10M:-}
+    volumes:
+      - ./var:/app/var                              # var/backend.db: пользователи, просмотры, оценки, журнал
+      - ./data/analytics:/app/data/analytics:ro     # PDF аналитики для перехода к первоисточнику
+    depends_on:
+      ml:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/api/health', timeout=4).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
