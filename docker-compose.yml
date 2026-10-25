@@ -52,3 +52,13 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+
+      # Фронт: nginx отдаёт сборку и проксирует /api на бэкенд. Открыть http://localhost:8080
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
