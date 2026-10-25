@@ -10,9 +10,10 @@ from fastapi.testclient import TestClient
 
 from backend.app.config import Settings
 from backend.app.main import create_app
-from ml.errors import NotFound
+from ml.errors import NotApplicable, NotFound
 from ml.schemas import (
-    BankProducts, CompanyProfile, DataQuality, Feed, FeedEntry, Geo, GroupInfo, Industry, InsightCard, Network, Size,
+    SCENARIO_KINDS, BankProducts, CompanyProfile, DataQuality, Feed, FeedEntry, Geo, GroupInfo, Industry, InsightCard, Network,
+    ScenarioSet, Size,
 )
 
 COMPANY = "U_1"          # компания alice и bob
@@ -85,13 +86,57 @@ TRACE = {
 }
 
 
+WEAK_ITEM = "n_weak"     # карточка со слабой связью: сценарии не строятся
+SCENARIOS_TRACE = {
+    "trace_id": "tr_scn", "kind": "scenarios", "started_at": 0, "duration_s": 40.0, "cost_rub": 0.99, "retries": 1,
+    "events": [
+        {"t": 0, "event": "start", "card_id": "ins_x"},
+        {"t": 1.0, "event": "llm_call", "model": "glm", "prompt": "СЕКРЕТНЫЙ ПРОМПТ", "cost_rub": 0.2},
+        {"t": 3.0, "event": "scenario_fork", "attempt": 0, "issues": []},
+        {"t": 9.0, "event": "scenario_branch", "kind": "good", "attempt": 0, "issues": []},
+        {"t": 9.5, "event": "scenario_branch", "kind": "base", "attempt": 0, "issues": ["цифр ['37,5'] нет в источниках"]},
+        {"t": 9.9, "event": "scenario_branch", "kind": "base", "attempt": 1, "issues": []},
+        {"t": 10.0, "event": "scenario_branch", "kind": "bad", "attempt": 0, "issues": []},
+        {"t": 20.0, "event": "scenario_analysis", "attempt": 0, "issues": []},
+    ],
+}
+
+
+def scenario_set(company_id: str, item_id: str, role=None) -> ScenarioSet:
+    """Набор сценариев по схеме `ml.schemas`: три ветки в порядке good, base, bad и разбор."""
+    suffix = f"_{role.value}" if role else ""
+    branch = lambda kind: {  # noqa: E731
+        "kind": kind, "title": f"Ветка {kind}", "assumption": f"если исход {kind}", "likelihood": "medium",
+        "likelihood_basis": "по материалу", "impact": "умеренное влияние", "company_features_used": ["bank_products.loan"],
+        "risks": [{"text": "Долг подорожает.", "evidence": ["src_n_rate"]}], "opportunities": [],
+        "signals": [f"сигнал {kind}"], "actions": [{"type": "action", "text": f"Действие {kind}", "evidence": ["profile"]}]}
+    effects = {"good": "helps", "base": "helps", "bad": "neutral"}
+    return ScenarioSet.model_validate({
+        "set_id": f"scn_{company_id}_{item_id}{suffix}", "card_id": f"ins_{company_id}_{item_id}{suffix}", "company_id": company_id,
+        "item_ids": [item_id], "role": role.value if role else "ceo",
+        "fork": {"variable": "решение регулятора", "base_basis": "item_expectation", "evidence": ["src_n_rate"],
+                 "outcomes": {"good": "если мягче", "base": "если по ожиданиям", "bad": "если жёстче"}},
+        "branches": [branch(k) for k in SCENARIO_KINDS],
+        "analysis": {"summary": "Ветки различаются нагрузкой.", "key_uncertainty": "решение регулятора",
+                     "decisions": [{"text": "Проверить условия кредитов", "type": "robust", "effects": effects, "rationale": "полезно"}],
+                     "recommendation": "Начать с проверки кредитов."},
+        "sources": [{"id": "src_n_rate", "kind": "news", "title": "ЦБ сохранил ставку", "published_at": date(2026, 10, 23)}],
+        "trace_id": SCENARIOS_TRACE["trace_id"],
+        "meta": {"model": "mock", "prompt_version": "scenario@test", "generated_at": datetime.now(timezone.utc),
+                 "card_generated_at": datetime.now(timezone.utc)},
+    })
+
+
 class FakeML:
-    """Управляет поведением подменённого `ml.api.get_insight`."""
+    """Управляет поведением подменённых `ml.api.get_insight` и `ml.api.get_scenarios`."""
 
     def __init__(self):
         self.delay_s = 0.0
         self.error: Exception | None = None
         self.insight_calls = 0
+        self.scenario_delay_s = 0.0
+        self.scenario_error: Exception | None = None
+        self.scenario_calls = 0
         self._lock = threading.Lock()
 
     def get_insight(self, company_id, item_id, refresh=False, role=None):
@@ -104,6 +149,19 @@ class FakeML:
         if not item_id.startswith(("n_", "bank_")):
             raise NotFound(f"материал {item_id} не найден")
         return card(company_id, item_id, role)
+
+    def get_scenarios(self, company_id, item_id, refresh=False, role=None):
+        with self._lock:
+            self.scenario_calls += 1
+        time.sleep(self.scenario_delay_s)
+        if self.scenario_error is not None:
+            raise self.scenario_error
+        profile(company_id)
+        if item_id == WEAK_ITEM:
+            raise NotApplicable("сценарии не строятся: связь материала с компанией слабая (relevance 0.10 < 0.3)")
+        if not item_id.startswith(("n_", "bank_")):
+            raise NotFound(f"материал {item_id} не найден")
+        return scenario_set(company_id, item_id, role)
 
 
 def ml_transport() -> httpx.ASGITransport:

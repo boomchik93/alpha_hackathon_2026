@@ -19,7 +19,7 @@ import pytest  # noqa: E402
 from ml import api as ml_api, feedback as ml_feedback, server as ml_server  # noqa: E402
 from ml.schemas import FollowupAnswer  # noqa: E402
 
-from .fakes import TRACE, FakeML, NotFound, feed, login, make_client, ml_transport, profile  # noqa: E402
+from .fakes import SCENARIOS_TRACE, TRACE, FakeML, NotFound, feed, login, make_client, ml_transport, profile  # noqa: E402
 
 
 @pytest.fixture()
@@ -29,7 +29,9 @@ def fake_ml(monkeypatch) -> FakeML:
     monkeypatch.setattr(ml_api, "build_profile", profile)
     monkeypatch.setattr(ml_api, "get_ranked_feed", feed)
     monkeypatch.setattr(ml_api, "get_insight", fake.get_insight)
-    monkeypatch.setattr(ml_server, "load_trace", lambda trace_id: TRACE if trace_id == TRACE["trace_id"] else None)
+    monkeypatch.setattr(ml_api, "get_scenarios", fake.get_scenarios)
+    traces = {TRACE["trace_id"]: TRACE, SCENARIOS_TRACE["trace_id"]: SCENARIOS_TRACE}
+    monkeypatch.setattr(ml_server, "load_trace", traces.get)
 
     def followup(card_id, question, role=None):
         if not card_id.startswith("ins_"):

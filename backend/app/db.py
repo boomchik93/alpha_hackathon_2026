@@ -1,4 +1,4 @@
-"""SQLite-хранилище бэкенда: пользователи, сессии, карточки, просмотры, обратная связь, журнал обращений.
+"""SQLite-хранилище бэкенда: пользователи, сессии, карточки, наборы сценариев, просмотры, обратная связь, журнал обращений.
 
 Одно соединение на процесс под блокировкой: бэкенд запускается одним процессом, запросы к базе короткие.
 Пароли хранятся как scrypt с солью, токены сессий как sha256: утечка базы не даёт ни паролей, ни действующих токенов.
@@ -45,6 +45,17 @@ CREATE TABLE IF NOT EXISTS cards (
     card_json  TEXT NOT NULL,
     saved_at   TEXT NOT NULL
 );
+-- Наборы сценариев, которые бэкенд отдал: по set_id находим компанию для проверки доступа к трассе.
+CREATE TABLE IF NOT EXISTS scenario_sets (
+    set_id     TEXT PRIMARY KEY,
+    card_id    TEXT NOT NULL,
+    company_id TEXT NOT NULL,
+    item_id    TEXT NOT NULL,
+    role       TEXT,
+    trace_id   TEXT NOT NULL,
+    set_json   TEXT NOT NULL,
+    saved_at   TEXT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS views (
     user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     company_id TEXT NOT NULL,
@@ -69,7 +80,7 @@ CREATE TABLE IF NOT EXISTS audit (
     id         INTEGER PRIMARY KEY,
     ts         TEXT NOT NULL,
     user_id    INTEGER,
-    action     TEXT NOT NULL,                 -- login, login_failed, insight, followup, feedback, trace, source
+    action     TEXT NOT NULL,                 -- login, login_failed, insight, scenarios, followup, feedback, trace, source
     company_id TEXT,
     item_id    TEXT,
     card_id    TEXT,
@@ -199,6 +210,16 @@ class DB:
 
     def card(self, card_id: str) -> sqlite3.Row | None:
         return self._one("SELECT * FROM cards WHERE card_id=?", (card_id,))
+
+    def save_scenarios(self, scenarios: dict, company_id: str, item_id: str) -> None:
+        self._write(
+            "INSERT OR REPLACE INTO scenario_sets (set_id,card_id,company_id,item_id,role,trace_id,set_json,saved_at) "
+            "VALUES (?,?,?,?,?,?,?,?)",
+            (scenarios["set_id"], scenarios["card_id"], company_id, item_id, scenarios.get("role"), scenarios["trace_id"],
+             json.dumps(scenarios, ensure_ascii=False), iso(now())))
+
+    def scenarios(self, set_id: str) -> sqlite3.Row | None:
+        return self._one("SELECT * FROM scenario_sets WHERE set_id=?", (set_id,))
 
     def mark_viewed(self, user_id: int, company_id: str, item_id: str) -> None:
         self._write("INSERT OR REPLACE INTO views (user_id,company_id,item_id,viewed_at) VALUES (?,?,?,?)",

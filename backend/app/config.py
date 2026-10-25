@@ -30,6 +30,8 @@ class Settings:
     ml_insight_timeout_s: float = field(default_factory=lambda: _float("BACKEND_ML_INSIGHT_TIMEOUT_S", 120))
     # Уточняющий вопрос: до двух вызовов модели (ответ и повтор после проверки цифр).
     ml_followup_timeout_s: float = field(default_factory=lambda: _float("BACKEND_ML_FOLLOWUP_TIMEOUT_S", 60))
+    # Сценарии: развилка, три ветки и разбор, пять вызовов модели подряд (ветки параллельно), поверх карточки.
+    ml_scenarios_timeout_s: float = field(default_factory=lambda: _float("BACKEND_ML_SCENARIOS_TIMEOUT_S", 180))
     # Сколько ждать карточку в самом запросе: из кэша ML она приходит быстрее, тогда фронт сразу получает 200.
     insight_sync_wait_s: float = field(default_factory=lambda: _float("BACKEND_INSIGHT_SYNC_WAIT_S", 2))
     # Одновременных генераций карточек: каждая стоит денег из общего дневного бюджета.
@@ -47,6 +49,8 @@ class Settings:
     # Карточка, которая уже генерируется для другого пользователя, лимит не тратит.
     limit_insights_per_10m: int = field(default_factory=lambda: _int("BACKEND_LIMIT_INSIGHTS_PER_10M", 20))
     limit_followups_per_10m: int = field(default_factory=lambda: _int("BACKEND_LIMIT_FOLLOWUPS_PER_10M", 10))
+    # Набор сценариев стоит около 1 руб. (пять вызовов), заметно дороже карточки.
+    limit_scenarios_per_10m: int = field(default_factory=lambda: _int("BACKEND_LIMIT_SCENARIOS_PER_10M", 10))
     # Неудачные входы за 5 минут: на логин (подбор пароля) и на адрес клиента (перебор логинов).
     limit_login_failures_per_login: int = field(default_factory=lambda: _int("BACKEND_LIMIT_LOGIN_FAILURES_PER_LOGIN", 5))
     limit_login_failures_per_ip: int = field(default_factory=lambda: _int("BACKEND_LIMIT_LOGIN_FAILURES_PER_IP", 20))

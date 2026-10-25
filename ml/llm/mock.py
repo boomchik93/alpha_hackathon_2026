@@ -99,6 +99,72 @@ def _channels(ctx: dict[str, Any]) -> dict:
     return {"channels": out}
 
 
+def _scenario_fork(ctx: dict[str, Any]) -> dict:
+    src, bank = ctx["item_source_id"], ctx.get("bank_ids", [])
+    return {
+        "variable": "[MOCK] решение регулятора по теме материала",
+        "outcomes": {"good": "[MOCK] если решение окажется мягче ожиданий",
+                     "base": "[MOCK] если решение совпадёт с ожиданиями из материала",
+                     "bad": "[MOCK] если решение окажется жёстче ожиданий"},
+        "base_basis": "bank_forecast" if bank else "item_expectation",
+        "evidence": [src, *bank[:1]],
+    }
+
+
+_BRANCH_MOCK = {
+    "good": ("Благоприятный", "low", "[MOCK] выигрыш по затратам"),
+    "base": ("Базовый", "high", "[MOCK] умеренное влияние"),
+    "bad": ("Неблагоприятный", "medium", "[MOCK] рост нагрузки"),
+}
+
+
+def _scenario(ctx: dict[str, Any]) -> dict:
+    kind, src, features = ctx["kind"], ctx["item_source_id"], ctx["features"]
+    title, likelihood, impact = _BRANCH_MOCK[kind]
+    return {
+        "title": f"[MOCK] {title}",
+        "assumption": ctx["fork"].outcomes[kind],
+        "likelihood": likelihood,
+        "likelihood_basis": "[MOCK] по материалу и профилю",
+        "impact": f"{impact} для компании ({ctx['profile'].industry.okved_name or 'компания'})",
+        "company_features_used": features,
+        "risks": [{"text": f"[MOCK] Риск ветки {kind}: нагрузка на банковские продукты.", "horizon": "3-6 мес",
+                   "evidence": [], "is_model_inference": True}],
+        "opportunities": [{"text": f"[MOCK] Возможность ветки {kind}: пересмотр условий.", "horizon": "3-6 мес",
+                           "evidence": [src], "is_model_inference": False}],
+        "signals": [f"[MOCK] сигнал ветки {kind}: публикация решения", f"[MOCK] второй сигнал ветки {kind}"],
+        "actions": [
+            {"text": f"[MOCK] Действие ветки {kind}: проверить условия продуктов банка.", "type": "action",
+             "evidence": ["profile"], "is_model_inference": False},
+            {"text": f"[MOCK] Какая доля затрат зависит от фактора (ветка {kind})?", "type": "question_for_analysis",
+             "evidence": [], "is_model_inference": True},
+        ],
+        "limitations": [],
+    }
+
+
+def _scenario_analysis(ctx: dict[str, Any]) -> dict:
+    by = {b["kind"]: b for b in ctx["branches"]}
+    act = lambda k: by[k]["actions"][0]["text"]  # noqa: E731
+    return {
+        "summary": "[MOCK] Ветки различаются нагрузкой на компанию и скоростью реакции.",
+        "key_uncertainty": "[MOCK] " + ctx["fork"].variable,
+        "decisions": [
+            {"text": act("base"), "type": "robust", "effects": {"good": "helps", "base": "helps", "bad": "helps"},
+             "rationale": "[MOCK] полезно при любом исходе", "trigger": None, "from_branches": ["base"], "is_model_inference": True},
+            {"text": act("good"), "type": "conditional", "effects": {"good": "helps", "base": "neutral", "bad": "hurts"},
+             "rationale": "[MOCK] выгодно только при мягком исходе", "trigger": by["good"]["signals"][0],
+             "from_branches": ["good"], "is_model_inference": True},
+            {"text": act("bad"), "type": "hedge", "effects": {"good": "neutral", "base": "neutral", "bad": "helps"},
+             "rationale": "[MOCK] страховка от жёсткого исхода", "trigger": by["bad"]["signals"][0],
+             "from_branches": ["bad"], "is_model_inference": True},
+        ],
+        "recommendation": "[MOCK] Сейчас: устойчивое решение. До сигнала: условное. Страховку держать наготове.",
+        "switch_signals": [by["good"]["signals"][0], by["bad"]["signals"][0]],
+        "limitations": [],
+    }
+
+
 def _followup(ctx: dict[str, Any]) -> dict:
     sources = ctx.get("sources", [])
     if not sources:
@@ -152,6 +218,9 @@ RESPONDERS = {
     "verify": lambda ctx: {"ok": True, "issues": []},
     "claim_verify": lambda ctx: {"verdicts": [{"id": c["id"], "verdict": "supported", "reason": "[MOCK]"} for c in ctx.get("claims", [])]},
     "followup_qa": _followup,
+    "scenario_fork": _scenario_fork,
+    "scenario": _scenario,
+    "scenario_analysis": _scenario_analysis,
     "channels": _channels,
     "label_a": lambda ctx: {"labels": [{"item_id": m["item_id"], "grade": 0, "reason": "[MOCK]"} for m in ctx.get("materials", [])]},
     "label_b": lambda ctx: {"labels": [{"item_id": m["item_id"], "grade": 0, "reason": "[MOCK]"} for m in ctx.get("materials", [])]},

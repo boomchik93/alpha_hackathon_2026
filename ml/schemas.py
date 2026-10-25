@@ -316,6 +316,124 @@ class InsightCard(InsightDraft):
 
 
 # ---------------------------------------------------------------------------
+# Сценарии: ветвление по одной неопределённости (ml/agent/scenarios.py)
+# ---------------------------------------------------------------------------
+
+ScenarioKind = Literal["good", "base", "bad"]
+SCENARIO_KINDS: tuple[str, ...] = ("good", "base", "bad")
+
+
+class ScenarioFork(_Model):
+    """Развилка: одна внешняя неопределённость и три исхода. Общая ось, по которой пишутся все ветки."""
+
+    variable: str = Field(description="что именно неизвестно: внешний фактор, а не решение компании")
+    outcomes: dict[ScenarioKind, str] = Field(description="условие каждого исхода, одна фраза")
+    base_basis: Literal["bank_forecast", "item_expectation", "assumption"] = Field(
+        description="на чём стоит базовый исход: прогноз банка, ожидание из материала, допущение модели")
+    evidence: list[str] = []
+
+    @model_validator(mode="after")
+    def _all_outcomes(self) -> "ScenarioFork":
+        if set(self.outcomes) != set(SCENARIO_KINDS) or not all(t.strip() for t in self.outcomes.values()):
+            raise ValueError("outcomes: нужны непустые good, base и bad")
+        return self
+
+
+class BranchDraft(_Model):
+    """Ветка, как её возвращает LLM. Вид ветки и служебные поля добавляет код."""
+
+    title: str
+    assumption: str = Field(description="условие ветки: что должно произойти; это гипотеза, не факт")
+    likelihood: Literal["low", "medium", "high"] = Field(description="качественная оценка; процентов нет")
+    likelihood_basis: str
+    impact: str = Field(description="что будет с этой компанией, если ветка реализуется")
+    company_features_used: list[str] = Field(min_length=1, description="пути полей профиля")
+    risks: list[Claim] = []
+    opportunities: list[Claim] = []
+    signals: list[str] = Field(min_length=1, description="наблюдаемые признаки, что события идут по этой ветке")
+    actions: list[SuggestedAction] = Field(min_length=1)
+    limitations: list[str] = []
+
+    def claims(self) -> list[Claim]:
+        return [*self.risks, *self.opportunities, *self.actions]
+
+    def referenced_source_ids(self) -> set[str]:
+        return {e for c in self.claims() for e in c.evidence}
+
+
+class ScenarioBranch(BranchDraft):
+    kind: ScenarioKind
+    verifier_issues: list[str] = Field([], description="замечания проверки, оставшиеся после повтора")
+
+
+class ScenarioDecision(_Model):
+    """Решение, разобранное по всем веткам: что оно даёт в каждой."""
+
+    text: str
+    type: Literal["robust", "conditional", "hedge"] = Field(
+        description="robust: не вредит ни в одной ветке; conditional: запускать по сигналу; hedge: страховка от плохой ветки")
+    effects: dict[ScenarioKind, Literal["helps", "neutral", "hurts"]]
+    rationale: str
+    trigger: str | None = Field(None, description="сигнал, при котором решение запускается (для conditional)")
+    from_branches: list[ScenarioKind] = []
+    is_model_inference: bool = True
+
+    @model_validator(mode="after")
+    def _all_effects(self) -> "ScenarioDecision":
+        if set(self.effects) != set(SCENARIO_KINDS):
+            raise ValueError("effects: нужны good, base и bad")
+        return self
+
+
+class ScenarioAnalysis(_Model):
+    """Разбор веток: что общего, от чего зависит выбор, какие решения устойчивы."""
+
+    summary: str
+    key_uncertainty: str
+    decisions: list[ScenarioDecision] = Field(min_length=1)
+    recommendation: str
+    switch_signals: list[str] = []
+    limitations: list[str] = []
+
+
+class ScenarioMeta(_Model):
+    model: str
+    prompt_version: str
+    generated_at: datetime
+    card_generated_at: datetime = Field(description="когда сделана карточка, на которой стоят сценарии; новая карточка = сценарии устарели")
+    retries: int = 0
+    cost_rub: float = 0.0
+    verifier_issues: list[str] = []
+
+
+class ScenarioSet(_Model):
+    set_id: str
+    card_id: str
+    company_id: str
+    item_ids: list[str] = Field(min_length=1)
+    role: str | None = None
+    fork: ScenarioFork
+    branches: list[ScenarioBranch] = Field(min_length=3, max_length=3)
+    analysis: ScenarioAnalysis
+    sources: list[SourceRef]
+    trace_id: str
+    meta: ScenarioMeta
+
+    @model_validator(mode="after")
+    def _consistent(self) -> "ScenarioSet":
+        if [b.kind for b in self.branches] != list(SCENARIO_KINDS):
+            raise ValueError("ветки должны идти в порядке good, base, bad, по одной")
+        known = {s.id for s in self.sources} | {PROFILE_SOURCE_ID}
+        used = {e for b in self.branches for e in b.referenced_source_ids()} | set(self.fork.evidence)
+        if missing := used - known:
+            raise ValueError(f"ссылки на неизвестные источники: {sorted(missing)}")
+        return self
+
+    def branch(self, kind: str) -> ScenarioBranch:
+        return next(b for b in self.branches if b.kind == kind)
+
+
+# ---------------------------------------------------------------------------
 # Лента и уточняющие вопросы
 # ---------------------------------------------------------------------------
 
@@ -330,6 +448,7 @@ class FeedEntry(_Model):
     topics: list[str] = []
     stale: bool = False
     tier: Literal["main", "maybe"] = Field("main", description="main: основная лента; maybe: блок «может быть интересно», связь с профилем слабая")
+    related: list[str] = Field([], description="item_id других материалов того же события, свёрнутых в эту запись")
 
 
 class Feed(_Model):

@@ -21,7 +21,7 @@
 
 ## Что уже есть в ML-сервисе
 
-- Ручки: `/companies`, `/companies/{id}`, `/companies/{id}/feed?tier=all|main&limit&maybe_limit`, `/companies/{id}/insights/{item_id}?refresh&role`, `POST /cards/{id}/followup?role`, `POST /cards/{id}/feedback`, `/feedback/summary`, `/traces/{id}`, `/health`.
+- Ручки: `/companies`, `/companies/{id}`, `/companies/{id}/feed?tier=all|main&limit&maybe_limit`, `/companies/{id}/insights/{item_id}?refresh&role`, `/companies/{id}/insights/{item_id}/scenarios?role&refresh` (ветки good/base/bad и разбор решений, `ScenarioSet`), `POST /cards/{id}/followup?role`, `POST /cards/{id}/feedback`, `/feedback/summary`, `/traces/{id}`, `/health`.
 - Роли: `owner/ceo/cfo/treasurer/chief_accountant/other` ([ml/roles.py](../ml/roles.py)). Карточка для разных ролей получает разный `card_id`.
 - Ошибки ML: 404 нет объекта, 429 исчерпан бюджет, 502 модель не дала годный ответ.
 - Карточка при первом запросе генерируется около 15 секунд (p95 около 31 секунды), потом отдаётся из кэша. Предрасчёт: `python -m ml.precompute --companies demo --top 3`.

@@ -4,6 +4,7 @@
     list_companies()          -> list[CompanyProfile]
     get_ranked_feed(company_id, limit) -> Feed
     get_insight(company_id, item_id, refresh=False) -> InsightCard
+    get_scenarios(company_id, item_id, refresh=False) -> ScenarioSet
     answer_followup(card_id, question) -> FollowupAnswer
 
 Все ответы pydantic-модели из `ml.schemas`; `model_dump(mode="json")` даёт JSON для фронта.
@@ -14,6 +15,7 @@ from __future__ import annotations
 from pydantic import BaseModel
 
 from ml.agent.orchestrator import load_card, run_insight
+from ml.agent.scenarios import cached_scenarios, run_scenarios
 from ml.agent.trace import Trace
 from ml.agent.verifier import card_texts, item_texts, profile_numbers, ungrounded_numbers
 from ml.errors import NotFound
@@ -26,7 +28,7 @@ from ml.prompts import prompt_version, render
 from ml.roles import Role, card_suffix, role_block
 from ml.ranking.ranker import feed
 from ml.retrieval.index import get_index
-from ml.schemas import CompanyProfile, Feed, FollowupAnswer, InsightCard, SourceKind, SourceRef
+from ml.schemas import CompanyProfile, Feed, FollowupAnswer, InsightCard, ScenarioSet, SourceKind, SourceRef
 
 MAX_QUESTION_CHARS = 500
 MAX_FOLLOWUP_ATTEMPTS = 2  # ответ и один повтор после замечания по цифрам
@@ -61,6 +63,16 @@ def get_insight(company_id: str, item_id: str, refresh: bool = False, role: Role
     if not refresh and (card := cached_insight(company_id, item_id, role)) is not None:
         return card
     return run_insight(company_id, item_id, role=role)
+
+
+def get_scenarios(company_id: str, item_id: str, refresh: bool = False, role: Role | None = None) -> ScenarioSet:
+    """Три ветки (good, base, bad) и разбор решений по карточке пары. Карточка берётся из `get_insight` (её кэш и устаревание
+    те же); набор сценариев пересобирается, если карточка новая, сменились промпты или модель, либо `refresh`.
+    Для карточки со слабой связью (relevance < 0,3) бросает `NotApplicable`."""
+    card = get_insight(company_id, item_id, role=role)
+    if not refresh and (cached := cached_scenarios(card)) is not None:
+        return cached
+    return run_scenarios(card, role=role)
 
 
 class _QA(BaseModel):

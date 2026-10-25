@@ -23,6 +23,7 @@ ML-слой уже работает как сервис (`make serve` в кор�
 | `GET /companies/{id}` | `CompanyProfile` |
 | `GET /companies/{id}/feed` | `Feed`: материалы с оценкой и причинами |
 | `GET /companies/{id}/insights/{item_id}` | `InsightCard` (на настоящей модели около 15 секунд при первом запросе) |
+| `GET /companies/{id}/insights/{item_id}/scenarios` | `ScenarioSet`: ветки good/base/bad и разбор решений (около 1 руб. и десятки секунд); 422 `not_applicable` при слабой связи |
 | `POST /cards/{card_id}/followup` | `FollowupAnswer` |
 | `POST /cards/{card_id}/feedback` | сохранение оценки карточки |
 | `GET /traces/{trace_id}` | трасса запуска агента |
@@ -96,7 +97,9 @@ LLM_MOCK=1 docker compose up --build   # без ключа к моделям; с
 | `GET /api/companies/{id}` | `CompanyProfile` |
 | `GET /api/companies/{id}/feed` | `Feed` плюс `entries[].is_new`, `new_count`, `fetched_at`; фильтры ниже |
 | `GET /api/companies/{id}/insights/{item_id}` | `200` и `InsightCard`, если карточка готова; иначе `202` и задача (ниже). Отмечает материал просмотренным |
-| `GET /api/jobs/{job_id}` | состояние генерации: `queued/running/done/failed`, `card` или `error` |
+| `GET /api/companies/{id}/insights/{item_id}/scenarios` | сценарии для главы компании: `200` и `ScenarioSet` (развилка, ветки good/base/bad, разбор решений), иначе `202` и задача. Не отмечает материал просмотренным |
+| `GET /api/jobs/{job_id}` | состояние генерации: `queued/running/done/failed`, `kind` (`insight` или `scenarios`), `card` или `scenarios`, или `error` |
+| `GET /api/scenarios/{set_id}/trace` | трасса сценариев: попытки и замечания по этапам, источники. Эксперту и админу ещё `cost_rub` и `raw` |
 | `POST /api/cards/{card_id}/followup` `{question}` | `FollowupAnswer`, вопрос до 500 символов |
 | `POST /api/cards/{card_id}/feedback` `{rating, reason?, comment?}` | `{ok, card_id, synced_to_ml}`: оценка в базе бэкенда и копия в ML |
 | `GET /api/cards/{card_id}/trace` | трасса. Пользователю: план, инструменты, повторы, перепланирование, источники, признаки профиля. Эксперту и админу ещё `cost_rub` и полная трасса `raw` |
@@ -119,6 +122,7 @@ PDF требует токен, поэтому обычная ссылка не �
 |---|---|---|
 | новые генерации карточек на пользователя | 20 | 10 мин |
 | уточняющие вопросы на пользователя | 10 | 10 мин |
+| новые наборы сценариев на пользователя (`BACKEND_LIMIT_SCENARIOS_PER_10M`) | 10 | 10 мин |
 | неудачные входы на логин | 5 | 5 мин |
 | неудачные входы с одного адреса | 20 | 5 мин |
 
@@ -139,6 +143,22 @@ PDF требует токен, поэтому обычная ссылка не �
 Задачи живут в памяти процесса: бэкенд запускается одним процессом, а после перезапуска карточка всё равно лежит в кэше ML.
 Задачу видят только те, кто запросил эту карточку, а также эксперт и админ.
 
+### Сценарии
+
+`GET /api/companies/{id}/insights/{item_id}/scenarios` работает как карточка: `200` с готовым набором из кэша ML или `202` с задачей
+(`kind: "scenarios"`, `Retry-After: 2`), результат в поле `scenarios` при `done`. Построение дольше карточки: пять вызовов модели,
+около 1 руб. и десятки секунд, поэтому фронту нужен опрос и индикатор. Таймаут к ML `BACKEND_ML_SCENARIOS_TIMEOUT_S` (180 с).
+
+- Роль задаёт профиль пользователя (как у карточки); эксперт и админ могут передать `?role=`. Без роли ML пишет для генерального директора.
+- Сценарии строятся поверх карточки той же роли. Если карточки ещё нет, ML делает её, бэкенд сохраняет, и вопрос по ней потом принимается.
+- Для карточки со слабой связью (`relevance` < 0,3) ответ `422` с кодом `scenarios_not_applicable`: кнопку «Сценарии» стоит скрывать по `relevance` карточки.
+- Задача карточки и задача сценариев независимы (разные ключи), но делят общий лимит параллельных генераций и очередь.
+- Поля для экрана: `fork.variable` и `fork.outcomes` (развилка), `branches[]` (`kind`, `title`, `assumption`, `likelihood` low/medium/high,
+  `likelihood_basis`, `impact`, `risks`, `opportunities`, `signals`, `actions`, `verifier_issues`), `analysis.decisions[]`
+  (`type` robust/hedge/conditional, `effects` по трём веткам helps/neutral/hurts, `trigger`), `analysis.recommendation`,
+  `analysis.switch_signals`, `sources` (те же `SourceRef`, PDF открывается через `/api/sources/{doc_id}/pdf`).
+- Условие ветки (`assumption`) это гипотеза, а не факт: так и подписывать на экране. Вероятностей числом нет.
+
 ### Ошибки
 
 Любая ошибка: `{"code": "...", "message": "...", "retry_after": 123}` (`retry_after` только у 429, дублируется заголовком `Retry-After`).
@@ -150,6 +170,7 @@ PDF требует токен, поэтому обычная ссылка не �
 | 403 | `forbidden` | нет доступа к компании, чужая роль, ручка только для эксперта или админа |
 | 404 | `not_found` | нет компании, материала, карточки, задачи, документа или ручки |
 | 422 | `validation_error` | неверные параметры или тело запроса |
+| 422 | `scenarios_not_applicable` | для карточки сценарии не строятся: связь с компанией слабая |
 | 429 | `budget_exceeded` | дневной бюджет моделей исчерпан, `retry_after` до сброса в 3:00 МСК; готовые карточки по-прежнему отдаются |
 | 429 | `rate_limited` | превышен лимит частоты (см. «Лимиты»), `retry_after` до освобождения |
 | 429 | `queue_full` | слишком много карточек в очереди |

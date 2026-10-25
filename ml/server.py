@@ -13,10 +13,10 @@ from pydantic import BaseModel
 from ml import api, feedback
 from ml.agent.orchestrator import InsightError
 from ml.agent.trace import load_trace
-from ml.errors import NotFound
+from ml.errors import NotApplicable, NotFound
 from ml.roles import Role
 from ml.llm.client import BudgetExceeded, LLMError, SpendLedger
-from ml.schemas import CompanyProfile, Feed, FollowupAnswer, InsightCard
+from ml.schemas import CompanyProfile, Feed, FollowupAnswer, InsightCard, ScenarioSet
 
 app = FastAPI(title="alpha-hack ML", version="0.1")
 
@@ -26,6 +26,9 @@ def _guard(fn, *args, **kwargs):
         return fn(*args, **kwargs)
     except NotFound as e:
         raise HTTPException(404, str(e)) from e
+    except NotApplicable as e:
+        # Код отличает «результата для этой пары нет» от ошибки параметров запроса (тоже 422).
+        raise HTTPException(422, {"code": "not_applicable", "message": str(e)}) from e
     except BudgetExceeded as e:
         raise HTTPException(429, str(e)) from e
     except (InsightError, LLMError) as e:
@@ -61,6 +64,11 @@ def ranked_feed(company_id: str, limit: int = 20, tier: Literal["main", "all"] =
 @app.get("/companies/{company_id}/insights/{item_id}", response_model=InsightCard)
 def insight(company_id: str, item_id: str, refresh: bool = False, role: Role | None = None):
     return _guard(api.get_insight, company_id, item_id, refresh, role)
+
+
+@app.get("/companies/{company_id}/insights/{item_id}/scenarios", response_model=ScenarioSet)
+def scenarios(company_id: str, item_id: str, refresh: bool = False, role: Role | None = None):
+    return _guard(api.get_scenarios, company_id, item_id, refresh, role)
 
 
 class Question(BaseModel):

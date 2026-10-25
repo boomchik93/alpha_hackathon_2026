@@ -62,6 +62,11 @@ class Paths:
         return self.runs / "cards"
 
     @property
+    def scenarios(self) -> Path:
+        """Наборы сценариев по карточкам (ml/agent/scenarios.py)."""
+        return self.runs / "scenarios"
+
+    @property
     def feedback(self) -> Path:
         """Оценки карточек пользователями (ml/feedback.py)."""
         return self.runs / "feedback.jsonl"

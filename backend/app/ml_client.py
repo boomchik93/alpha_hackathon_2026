@@ -27,16 +27,25 @@ def seconds_until_budget_reset(now: datetime | None = None) -> int:
     return int((reset - now).total_seconds())
 
 
-def _detail(resp: httpx.Response) -> str:
+def _raw_detail(resp: httpx.Response):
     try:
-        detail = resp.json().get("detail")
+        return resp.json().get("detail")
     except (ValueError, AttributeError):
-        detail = None
+        return None
+
+
+def _detail(resp: httpx.Response) -> str:
+    detail = _raw_detail(resp)
+    if isinstance(detail, dict):  # структурная ошибка ML: {"code", "message"}
+        detail = detail.get("message")
     return str(detail if detail is not None else resp.text)[:300]
 
 
 def _to_api_error(resp: httpx.Response) -> ApiError:
     detail = _detail(resp)
+    raw = _raw_detail(resp)
+    if resp.status_code == 422 and isinstance(raw, dict) and raw.get("code") == "not_applicable":
+        return ApiError(422, "scenarios_not_applicable", detail)
     if resp.status_code == 404:
         return ApiError(404, "not_found", detail or "не найдено")
     if resp.status_code == 429:

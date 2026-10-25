@@ -42,6 +42,10 @@ ROUTES: dict[str, Route] = {
     # Проверка утверждений по одному: Qwen строже Gemma (ml/agent/claim_verify.py).
     "claim_verify": Route("qwen", 0.0, 2000, fallback="gemma"),
     "followup_qa": Route("glm", 0.2, 1000, fallback="qwen"),
+    # Сценарии (ml/agent/scenarios.py): развилка, три ветки по одной на вызов, разбор решений по веткам.
+    "scenario_fork": Route("glm", 0.2, 700, fallback="qwen"),
+    "scenario": Route("glm", 0.3, 2200, fallback="qwen"),
+    "scenario_analysis": Route("glm", 0.2, 2000, fallback="qwen"),
     # Судья eval: другая модель, чем интерпретатор (GLM), чтобы не оценивать самого себя.
     "eval_judge": Route("deepseek", 0.0, 1200),
     # Второй судья (IMPROVEMENTS.md, E4), включается run_eval --second-judge. Kimi в ~15 раз дороже DeepSeek;

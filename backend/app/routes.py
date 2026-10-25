@@ -211,18 +211,23 @@ async def me_summary(request: Request, user: CurrentUser,
 
 class JobView(BaseModel):
     job_id: str
+    kind: Literal["insight", "scenarios"] = Field("insight", description="что генерируется: карточка или набор сценариев")
     status: Literal["queued", "running", "done", "failed"]
     poll_url: str
     created_at: datetime
     updated_at: datetime
-    card: dict[str, Any] | None = Field(None, description="InsightCard, когда status=done")
+    card: dict[str, Any] | None = Field(None, description="InsightCard, когда kind=insight и status=done")
+    scenarios: dict[str, Any] | None = Field(None, description="ScenarioSet, когда kind=scenarios и status=done")
     error: ErrorBody | None = Field(None, description="ошибка в общем формате, когда status=failed")
 
 
 def _view(job: Job) -> JobView:
     ts = lambda t: datetime.fromtimestamp(t, timezone.utc)  # noqa: E731
-    return JobView(job_id=job.id, status=job.status, poll_url=f"/api/jobs/{job.id}", created_at=ts(job.created_at),
-                   updated_at=ts(job.updated_at), card=job.result if job.status == "done" else None,
+    kind = job.key[0]  # ключ задачи начинается с вида: ("insight", ...) или ("scenarios", ...)
+    done = job.status == "done"
+    return JobView(job_id=job.id, kind=kind, status=job.status, poll_url=f"/api/jobs/{job.id}", created_at=ts(job.created_at),
+                   updated_at=ts(job.updated_at), card=job.result if done and kind == "insight" else None,
+                   scenarios=job.result if done and kind == "scenarios" else None,
                    error=job.error.body() if job.status == "failed" and job.error else None)
 
 
@@ -263,6 +268,49 @@ async def insight(request: Request, user: CurrentUser, company_id: Id, item_id: 
     if job.status == "done":
         return job.result
     return JSONResponse(_view(job).model_dump(mode="json"), status_code=202, headers={"Retry-After": "1"})
+
+
+@router.get(
+    "/companies/{company_id}/insights/{item_id}/scenarios",
+    responses={200: {"description": "ScenarioSet: три ветки (good, base, bad) и разбор решений; готов из кэша ML"},
+               202: {"model": JobView, "description": "сценарии строятся: опрашивайте poll_url раз в 2-3 с, результат в поле scenarios"},
+               422: {"model": ErrorBody, "description": "code=scenarios_not_applicable: связь карточки с компанией слабая, кнопку скрыть"}},
+)
+async def scenarios(request: Request, user: CurrentUser, company_id: Id, item_id: Id,
+                    role: Annotated[Role | None, Query(description="только эксперт и админ: сценарии для другой роли")] = None):
+    """Сценарии для карточки: развилка, три ветки (good, base, bad) и разбор решений по ним. Готовые отдаются сразу (200),
+    иначе 202 с задачей, как у карточки.
+
+    Сценарии строятся поверх карточки той же роли: если карточки ещё нет, ML сначала делает её, бэкенд её сохраняет, и вопрос
+    по ней потом принимается. Для карточек со слабой связью (relevance ниже 0,3) ответ 422 `scenarios_not_applicable`.
+    """
+    await ensure_company(request, user, company_id)
+    ml, settings, db = _ml(request), _settings(request), _db(request)
+    card_role = effective_role(user, role)
+
+    async def work() -> dict:
+        card = await ml.get(f"/companies/{company_id}/insights/{item_id}", params={"role": card_role},
+                            timeout_s=settings.ml_insight_timeout_s)
+        db.save_card(card, company_id, item_id)
+        result = await ml.get(f"/companies/{company_id}/insights/{item_id}/scenarios", params={"role": card_role},
+                              timeout_s=settings.ml_scenarios_timeout_s)
+        db.save_scenarios(result, company_id, item_id)  # по set_id потом проверяется доступ к трассе
+        return result
+
+    db.audit("scenarios", user.id, company_id=company_id, item_id=item_id, detail=card_role)
+    jobs = _jobs(request)
+    key = ("scenarios", company_id, item_id, card_role)
+    if jobs.active(key) is None:  # присоединение к идущей генерации бесплатно
+        _limiter(request).hit(("scenarios", user.id), settings.limit_scenarios_per_10m, LIMIT_WINDOW_S,
+                              "слишком много новых сценариев за 10 минут, подождите")
+    job = jobs.submit(key, work)
+    job.viewers.add(user.id)
+    await jobs.wait(job, settings.insight_sync_wait_s)
+    if job.status == "failed" and job.error is not None:
+        raise job.error
+    if job.status == "done":
+        return job.result
+    return JSONResponse(_view(job).model_dump(mode="json"), status_code=202, headers={"Retry-After": "2"})
 
 
 @router.get("/jobs/{job_id}", response_model=JobView)
@@ -346,6 +394,46 @@ async def feedback_summary(request: Request, user: PrivilegedUser) -> dict[str, 
         out["ml"] = await _ml(request).get("/feedback/summary")
     except ApiError:
         out["ml"] = None
+    return out
+
+
+def _user_scenarios_trace(trace: dict, scenarios: dict) -> dict:
+    """Упрощённый вид трассы сценариев: сколько попыток и замечаний на каждом этапе, источники, модель. Без промптов и ответов модели."""
+    events = trace.get("events", [])
+
+    def stage(name: str, **match) -> list[dict]:
+        return [{"attempt": e.get("attempt"), "issues": len(e.get("issues") or [])} for e in events
+                if e.get("event") == name and all(e.get(k) == v for k, v in match.items())]
+
+    return {
+        "trace_id": trace.get("trace_id"),
+        "kind": trace.get("kind"),
+        "duration_s": trace.get("duration_s"),
+        "retries": trace.get("retries", 0),
+        "fork": stage("scenario_fork"),
+        "branches": {kind: stage("scenario_branch", kind=kind) for kind in ("good", "base", "bad")},
+        "analysis": stage("scenario_analysis"),
+        "sources": [{k: s.get(k) for k in ("id", "kind", "title", "published_at", "doc_id", "page", "url")}
+                    for s in scenarios.get("sources", [])],
+        "model": scenarios.get("meta", {}).get("model"),
+        "prompt_version": scenarios.get("meta", {}).get("prompt_version"),
+    }
+
+
+@router.get("/scenarios/{set_id}/trace")
+async def scenarios_trace(request: Request, user: CurrentUser, set_id: Id) -> dict[str, Any]:
+    """Трасса набора сценариев. Пользователь видит упрощённый вид; эксперт и админ ещё и полную трассу с расходом (`raw`)."""
+    row = _db(request).scenarios(set_id)
+    if row is None:
+        raise not_found(f"сценарии {set_id} не найдены: сначала откройте их через карточку")
+    await ensure_company(request, user, row["company_id"])
+    trace = await _ml(request).get(f"/traces/{row['trace_id']}")
+    out = _user_scenarios_trace(trace, json.loads(row["set_json"]))
+    if user.privileged:
+        out["cost_rub"] = trace.get("cost_rub")
+        out["raw"] = trace
+    _db(request).audit("trace", user.id, company_id=row["company_id"], item_id=row["item_id"], card_id=row["card_id"],
+                       trace_id=row["trace_id"], detail=set_id)
     return out
 
 
