@@ -1,4 +1,4 @@
-"""Ручная проверка машинной разметки реальных новостей (STATUS_HANDOFF.md, шаг 1 плана).
+"""Ручная проверка машинной разметки реальных новостей.
 
     ML_AS_OF=2026-10-22 python -m ml.eval.label_review_real make     # -> ml/eval/review_real.md + review_real_key.json
     python -m ml.eval.label_review_real score                        # после заполнения review_real.md
@@ -39,7 +39,7 @@ QUOTAS = {"macro": 30, "kept_neg": 30, "dropped_pos": 15, "random": 25}
 _PAIR = re.compile(r"^## (\d+)\. `([^`]+)` × `([^`]+)`", re.M)
 _ANSWER = re.compile(r"^Оценка:[ \t]*([012?])?[ \t]*$", re.M)
 BATCH_N, BATCH_PER_ITEM = 120, 4
-REAL2_N = 150  # FEED_TIERS_PLAN.md, этап 5
+REAL2_N = 150
 
 CRITERIA = """## Как ставить оценку
 
@@ -280,7 +280,7 @@ def human_pairs(name: str = "real") -> dict[tuple[str, str], int]:
 
 def tiers_vs_human(sets: dict | None = None, main: float | None = None, maybe: float | None = None, macro_tier: str | None = None,
                    thresholds: tuple[float, ...] = ()) -> dict:
-    """Уровни ленты против ручной разметки real (FEED_TIERS_PLAN.md, этап 2): точность основной ленты, полнота обоих уровней,
+    """Уровни ленты против ручной разметки real: точность основной ленты, полнота обоих уровней,
     доля нужного в первой пятёрке. Модель: внефолдовые предсказания по дням (как в CV), настройки из pair_model_cv.json.
     thresholds: ещё те же метрики для других порогов основной ленты (этап 4)."""
     from ml.ranking import pair_model as pm

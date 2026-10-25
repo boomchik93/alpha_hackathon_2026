@@ -15,6 +15,7 @@ from pydantic import ValidationError
 from ml.agent import channels as impact_channels
 from ml.agent import claim_verify, consistency
 from ml.agent.bank_quotes import assemble as assemble_bank_view, check_quotes
+from ml.agent.humanize import humanize
 from ml.agent.tools import RunContext, ToolRegistry
 from ml.agent.trace import Trace
 from ml.agent.verifier import good_bank_hits, item_topic_text, llm_check, rule_check
@@ -31,10 +32,10 @@ from ml.schemas import (
 )
 
 MAX_RETRIES = 2
-# Фрагментов банка в контексте: меньше соседних кусков, меньше «подтягивания» тезисов (IMPROVEMENTS.md, A3 п.4, F2).
+# Фрагментов банка в контексте: меньше соседних кусков, меньше «подтягивания» тезисов.
 BANK_K = 3
 BANK_PER_DOC = 2
-# Перепланирование по данным (REVIEW_PLAN.md, T14): окно соседних материалов и сколько их брать.
+# Перепланирование по данным: окно соседних материалов и сколько их брать.
 NEWS_WINDOW_DAYS = 3
 NEWS_LIMIT = 2
 MIN_CONFIRMED_FACTS = 2
@@ -235,7 +236,8 @@ def run_insight(company_id: str, item_id: str, client: LLMClient | None = None, 
         elif step["tool"] == "search_bank_analytics" and "doc" in step:
             tools.call("search_bank_analytics", query=_bank_query(profile, item), k=3, doc_ids=[step["doc"]])
         elif step["tool"] == "search_bank_analytics":
-            tools.call("search_bank_analytics_multi", queries=_bank_queries(profile, item), k=BANK_K, per_doc=BANK_PER_DOC)
+            tools.call("search_bank_analytics_multi", queries=_bank_queries(profile, item), k=BANK_K, per_doc=BANK_PER_DOC,
+                       core_topics=item.topics)
         elif step["tool"] == "get_counterparty_network":
             tools.call("get_counterparty_network", company_id=company_id)
         elif step["tool"] is None and "связей" in step["why"]:
@@ -245,7 +247,7 @@ def run_insight(company_id: str, item_id: str, client: LLMClient | None = None, 
     contradiction = consistency.check_item(client, item, ctx.bank_hits, trace) if consistency.enabled() else None
     contradicts = bool(contradiction and contradiction.status == "contradicts")
 
-    # Стадия 1 (IMPROVEMENTS.md, A3): каналы влияния до текста. None: стадия выключена.
+    # Стадия 1: каналы влияния до текста. None: стадия выключена.
     kept_channels, dropped_channels = None, []
     if impact_channels.enabled():
         kept_channels, dropped_channels = impact_channels.extract(
@@ -321,6 +323,8 @@ def run_insight(company_id: str, item_id: str, client: LLMClient | None = None, 
             trace.log("claims_removed", removed=removed)
     card = card.model_copy(update={"meta": card.meta.model_copy(update={
         "retries": trace.retries, "cost_rub": round(trace.cost_rub, 4), "verifier_issues": issues})})
+    # Служебные обозначения (пути полей, id фактов) из текстов убираются после проверки: проверке они не мешают.
+    card = humanize(card)
     trace.log("done", card_id=card.card_id, issues=issues)
     trace.save()
     save_card(card)
@@ -336,7 +340,8 @@ def load_card(card_id: str) -> InsightCard:
     p = settings.paths.cards / f"{card_id}.json"
     if not p.exists():
         raise NotFound(f"карточка {card_id} не найдена")
-    return InsightCard.model_validate(json.loads(p.read_text(encoding="utf-8")))
+    # Карточки, сохранённые до очистки текстов, чистятся при чтении.
+    return humanize(InsightCard.model_validate(json.loads(p.read_text(encoding="utf-8"))))
 
 
 __all__ = ["run_insight", "load_card", "InsightError", "PROFILE_SOURCE_ID"]

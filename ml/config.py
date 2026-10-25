@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -88,14 +88,26 @@ class LLMSettings:
     budget_stop_ratio: float = field(default_factory=lambda: float(_env("LLM_BUDGET_STOP_RATIO", "0.9")))
 
 
+MSK = timezone(timedelta(hours=3))
+
+
+def resolve_as_of(raw: str) -> date:
+    """`today`: текущая дата по Москве (боевой режим, новости российские); иначе дата ISO."""
+    return datetime.now(MSK).date() if raw == "today" else date.fromisoformat(raw)
+
+
 @dataclass(frozen=True)
 class Settings:
     paths: Paths = field(default_factory=Paths)
     llm: LLMSettings = field(default_factory=LLMSettings)
-    # «Сейчас» для демо: от него считается свежесть материалов.
-    as_of: date = field(default_factory=lambda: date.fromisoformat(_env("ML_AS_OF", "2026-09-15")))
     big_revenue_rub: float = 15e9
     embedder_url: str = field(default_factory=lambda: _env("EMBEDDER_URL"))
+
+    @property
+    def as_of(self) -> date:
+        """«Сейчас», от него считается свежесть материалов. Для демо и eval фиксированная дата (`ML_AS_OF`),
+        в боевом режиме `ML_AS_OF=today`: читается при каждом обращении, сервер работает сутками."""
+        return resolve_as_of(_env("ML_AS_OF", "2026-09-15"))
 
 
 settings = Settings()

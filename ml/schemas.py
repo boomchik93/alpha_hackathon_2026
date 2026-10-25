@@ -218,7 +218,7 @@ class BankQuote(_Model):
 
 
 class BankView(_Model):
-    # Модель возвращает цитаты; text собирает код из проверенных цитат (IMPROVEMENTS.md, A1).
+    # Модель возвращает цитаты; text собирает код из проверенных цитат.
     text: str = ""
     source_ids: list[str] = Field(min_length=1)
     quotes: list[BankQuote] = []
@@ -247,7 +247,7 @@ class SourceRef(_Model):
 
 
 class ImpactChannel(_Model):
-    """Канал влияния события на компанию (стадия 1 генерации, IMPROVEMENTS.md A3). Ключи: ml.topics.IMPACT_CHANNELS."""
+    """Канал влияния события на компанию (стадия 1 генерации). Ключи: ml.topics.IMPACT_CHANNELS."""
 
     channel: str
     strength: Literal["strong", "weak", "none"]

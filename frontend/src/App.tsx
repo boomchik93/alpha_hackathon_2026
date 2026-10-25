@@ -23,7 +23,7 @@ function Private({ children }: { children: ReactNode }) {
 }
 
 export default function App() {
-  return <Router>
+  return <Router basename={import.meta.env.BASE_URL}>
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/" element={<Private><HomePage /></Private>} />

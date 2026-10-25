@@ -1,0 +1,2521 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "alpha-hack ML",
+    "version": "0.1"
+  },
+  "paths": {
+    "/companies": {
+      "get": {
+        "summary": "Companies",
+        "operationId": "companies_companies_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CompanyBrief"
+                  },
+                  "type": "array",
+                  "title": "Response Companies Companies Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/companies/{company_id}": {
+      "get": {
+        "summary": "Profile",
+        "operationId": "profile_companies__company_id__get",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Company Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyProfile"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/companies/{company_id}/feed": {
+      "get": {
+        "summary": "Ranked Feed",
+        "operationId": "ranked_feed_companies__company_id__feed_get",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Company Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "tier",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "main",
+                "all"
+              ],
+              "type": "string",
+              "default": "all",
+              "title": "Tier"
+            }
+          },
+          {
+            "name": "maybe_limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 10,
+              "title": "Maybe Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Feed"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/companies/{company_id}/insights/{item_id}": {
+      "get": {
+        "summary": "Insight",
+        "operationId": "insight_companies__company_id__insights__item_id__get",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Company Id"
+            }
+          },
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Item Id"
+            }
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Refresh"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Role"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InsightCard"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/companies/{company_id}/insights/{item_id}/scenarios": {
+      "get": {
+        "summary": "Scenarios",
+        "operationId": "scenarios_companies__company_id__insights__item_id__scenarios_get",
+        "parameters": [
+          {
+            "name": "company_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Company Id"
+            }
+          },
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Item Id"
+            }
+          },
+          {
+            "name": "refresh",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Refresh"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Role"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Role"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScenarioSet"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cards/{card_id}/followup": {
+      "post": {
+        "summary": "Followup",
+        "operationId": "followup_cards__card_id__followup_post",
+        "parameters": [
+          {
+            "name": "card_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Card Id"
+            }
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/Role"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Role"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Question"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FollowupAnswer"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/cards/{card_id}/feedback": {
+      "post": {
+        "summary": "Card Feedback",
+        "operationId": "card_feedback_cards__card_id__feedback_post",
+        "parameters": [
+          {
+            "name": "card_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Card Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackIn"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeedbackSaved"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/feedback/summary": {
+      "get": {
+        "summary": "Feedback Summary",
+        "operationId": "feedback_summary_feedback_summary_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/traces/{trace_id}": {
+      "get": {
+        "summary": "Trace",
+        "operationId": "trace_traces__trace_id__get",
+        "parameters": [
+          {
+            "name": "trace_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Trace Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/items/daily": {
+      "get": {
+        "summary": "Items Daily",
+        "description": "Число материалов по дате публикации за `days` дней до «сейчас» (ML_AS_OF), включая дни без материалов:\nмониторинг поступления новостей, ноль за день означает остановку сборщика.",
+        "operationId": "items_daily_items_daily_get",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 14,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "integer"
+                  },
+                  "title": "Response Items Daily Items Daily Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AIInference": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Source Ids",
+            "default": []
+          },
+          "label": {
+            "type": "string",
+            "const": "Вывод модели",
+            "title": "Label",
+            "default": "Вывод модели"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "AIInference"
+      },
+      "BankProducts": {
+        "properties": {
+          "rko": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rko"
+          },
+          "guarantee": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guarantee"
+          },
+          "loan": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Loan"
+          },
+          "leasing": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Leasing"
+          },
+          "deposit": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deposit"
+          },
+          "payroll": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payroll"
+          },
+          "factoring": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Factoring"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "BankProducts"
+      },
+      "BankQuote": {
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "title": "Source Id"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "description": "дословная цитата из фрагмента аналитики банка"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_id",
+          "text"
+        ],
+        "title": "BankQuote"
+      },
+      "BankView": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text",
+            "default": ""
+          },
+          "source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Source Ids"
+          },
+          "quotes": {
+            "items": {
+              "$ref": "#/components/schemas/BankQuote"
+            },
+            "type": "array",
+            "title": "Quotes",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_ids"
+        ],
+        "title": "BankView"
+      },
+      "CardMeta": {
+        "properties": {
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "prompt_version": {
+            "type": "string",
+            "title": "Prompt Version"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          },
+          "retries": {
+            "type": "integer",
+            "title": "Retries",
+            "default": 0
+          },
+          "cost_rub": {
+            "type": "number",
+            "title": "Cost Rub",
+            "default": 0.0
+          },
+          "verifier_issues": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Verifier Issues",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "model",
+          "prompt_version",
+          "generated_at"
+        ],
+        "title": "CardMeta"
+      },
+      "Claim": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "horizon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Horizon"
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence",
+            "default": []
+          },
+          "is_model_inference": {
+            "type": "boolean",
+            "title": "Is Model Inference",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "Claim"
+      },
+      "CompanyBrief": {
+        "properties": {
+          "company_id": {
+            "type": "string",
+            "title": "Company Id"
+          },
+          "level": {
+            "type": "string",
+            "title": "Level"
+          },
+          "okved_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Okved Name"
+          },
+          "revenue_rub": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revenue Rub"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "client_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "company_id",
+          "level",
+          "okved_name",
+          "revenue_rub",
+          "region",
+          "client_type"
+        ],
+        "title": "CompanyBrief"
+      },
+      "CompanyProfile": {
+        "properties": {
+          "company_id": {
+            "type": "string",
+            "title": "Company Id"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "company",
+              "group"
+            ],
+            "title": "Level",
+            "default": "company"
+          },
+          "org_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Org Type"
+          },
+          "ownership": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ownership"
+          },
+          "client_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Type",
+            "description": "CL_TYPE: CLIENT / PROSPECT"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage",
+            "description": "ECO_MARK_LABEL"
+          },
+          "eligible_big": {
+            "type": "boolean",
+            "title": "Eligible Big",
+            "description": "выручка компании или группы > 15 млрд руб."
+          },
+          "industry": {
+            "$ref": "#/components/schemas/Industry"
+          },
+          "size": {
+            "$ref": "#/components/schemas/Size"
+          },
+          "geo": {
+            "$ref": "#/components/schemas/Geo"
+          },
+          "bank_products": {
+            "$ref": "#/components/schemas/BankProducts"
+          },
+          "group": {
+            "$ref": "#/components/schemas/GroupInfo"
+          },
+          "network": {
+            "$ref": "#/components/schemas/Network"
+          },
+          "data_quality": {
+            "$ref": "#/components/schemas/DataQuality"
+          },
+          "member_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Member Ids",
+            "description": "для level=group: компании группы",
+            "default": []
+          },
+          "market_position": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MarketPosition"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "положение в отрасли среди компаний выборки банка"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "company_id",
+          "eligible_big",
+          "industry",
+          "size",
+          "geo",
+          "bank_products",
+          "group",
+          "network",
+          "data_quality"
+        ],
+        "title": "CompanyProfile"
+      },
+      "Consequences": {
+        "properties": {
+          "risks": {
+            "items": {
+              "$ref": "#/components/schemas/Claim"
+            },
+            "type": "array",
+            "title": "Risks",
+            "default": []
+          },
+          "opportunities": {
+            "items": {
+              "$ref": "#/components/schemas/Claim"
+            },
+            "type": "array",
+            "title": "Opportunities",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Consequences"
+      },
+      "Counterparty": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "payer",
+              "beneficiary"
+            ],
+            "title": "Role",
+            "description": "роль контрагента по отношению к компании"
+          },
+          "amt_rub": {
+            "type": "number",
+            "title": "Amt Rub"
+          },
+          "cnt": {
+            "type": "integer",
+            "title": "Cnt"
+          },
+          "known": {
+            "type": "boolean",
+            "title": "Known",
+            "description": "есть ли контрагент в таблице компаний"
+          },
+          "okved_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Okved Name"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "role",
+          "amt_rub",
+          "cnt",
+          "known"
+        ],
+        "title": "Counterparty"
+      },
+      "DataQuality": {
+        "properties": {
+          "missing_fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Fields",
+            "default": []
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Conflicts",
+            "default": []
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "DataQuality"
+      },
+      "Feed": {
+        "properties": {
+          "company_id": {
+            "type": "string",
+            "title": "Company Id"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/FeedEntry"
+            },
+            "type": "array",
+            "title": "Entries"
+          },
+          "filtered_out": {
+            "type": "integer",
+            "title": "Filtered Out",
+            "description": "сколько материалов отсеяно как нерелевантные",
+            "default": 0
+          },
+          "maybe_count": {
+            "type": "integer",
+            "title": "Maybe Count",
+            "description": "сколько записей в блоке «может быть интересно» (tier=maybe); они идут после основной ленты",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "company_id",
+          "as_of",
+          "entries"
+        ],
+        "title": "Feed"
+      },
+      "FeedEntry": {
+        "properties": {
+          "item_id": {
+            "type": "string",
+            "title": "Item Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date",
+            "title": "Published At"
+          },
+          "source_kind": {
+            "$ref": "#/components/schemas/SourceKind"
+          },
+          "score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reasons"
+          },
+          "topics": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Topics",
+            "default": []
+          },
+          "stale": {
+            "type": "boolean",
+            "title": "Stale",
+            "default": false
+          },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "main",
+              "maybe"
+            ],
+            "title": "Tier",
+            "description": "main: основная лента; maybe: блок «может быть интересно», связь с профилем слабая",
+            "default": "main"
+          },
+          "related": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Related",
+            "description": "item_id других материалов того же события, свёрнутых в эту запись",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "item_id",
+          "title",
+          "published_at",
+          "source_kind",
+          "score",
+          "reasons"
+        ],
+        "title": "FeedEntry"
+      },
+      "FeedbackIn": {
+        "properties": {
+          "rating": {
+            "type": "string",
+            "enum": [
+              "up",
+              "down"
+            ],
+            "title": "Rating"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "wrong_fact",
+                  "not_relevant",
+                  "obvious",
+                  "other"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role",
+            "description": "роль пользователя: owner, cfo, treasurer и т. п."
+          }
+        },
+        "type": "object",
+        "required": [
+          "rating"
+        ],
+        "title": "FeedbackIn"
+      },
+      "FeedbackSaved": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok",
+            "default": true
+          },
+          "card_id": {
+            "type": "string",
+            "title": "Card Id"
+          },
+          "trace_id": {
+            "type": "string",
+            "title": "Trace Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "card_id",
+          "trace_id"
+        ],
+        "title": "FeedbackSaved"
+      },
+      "FollowupAnswer": {
+        "properties": {
+          "card_id": {
+            "type": "string",
+            "title": "Card Id"
+          },
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          },
+          "source_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Source Ids",
+            "default": []
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceRef"
+            },
+            "type": "array",
+            "title": "Sources",
+            "default": []
+          },
+          "is_model_inference": {
+            "type": "boolean",
+            "title": "Is Model Inference",
+            "default": true
+          },
+          "verifier_issues": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Verifier Issues",
+            "description": "замечания проверки цифр ответа, оставшиеся после повтора",
+            "default": []
+          },
+          "trace_id": {
+            "type": "string",
+            "title": "Trace Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "card_id",
+          "question",
+          "answer",
+          "trace_id"
+        ],
+        "title": "FollowupAnswer"
+      },
+      "Geo": {
+        "properties": {
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "foreign_trade": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Foreign Trade"
+          },
+          "fts_countries": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Fts Countries",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Geo"
+      },
+      "GroupInfo": {
+        "properties": {
+          "group_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Id"
+          },
+          "group_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Size"
+          },
+          "group_revenue_rub": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Revenue Rub"
+          },
+          "group_clients": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Clients"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "GroupInfo"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "ImpactChannel": {
+        "properties": {
+          "channel": {
+            "type": "string",
+            "title": "Channel"
+          },
+          "strength": {
+            "type": "string",
+            "enum": [
+              "strong",
+              "weak",
+              "none"
+            ],
+            "title": "Strength"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "negative",
+              "positive",
+              "mixed",
+              "unclear"
+            ],
+            "title": "Direction",
+            "default": "unclear"
+          },
+          "mechanism": {
+            "type": "string",
+            "title": "Mechanism",
+            "default": ""
+          },
+          "profile_features": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Profile Features",
+            "default": []
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "channel",
+          "strength"
+        ],
+        "title": "ImpactChannel",
+        "description": "Канал влияния события на компанию (стадия 1 генерации). Ключи: ml.topics.IMPACT_CHANNELS."
+      },
+      "Industry": {
+        "properties": {
+          "okved_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Okved Code",
+            "description": "нормализованный код, например 46.71"
+          },
+          "okved_raw": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Okved Raw"
+          },
+          "okved_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Okved Name"
+          },
+          "okved_section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Okved Section",
+            "description": "первые две цифры кода"
+          },
+          "sector_tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sector Tags",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Industry"
+      },
+      "InsightCard": {
+        "properties": {
+          "relevance": {
+            "$ref": "#/components/schemas/Relevance"
+          },
+          "what_happened": {
+            "$ref": "#/components/schemas/WhatHappened"
+          },
+          "why_it_matters": {
+            "$ref": "#/components/schemas/WhyItMatters"
+          },
+          "consequences": {
+            "$ref": "#/components/schemas/Consequences"
+          },
+          "bank_view": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BankView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ai_inference": {
+            "$ref": "#/components/schemas/AIInference"
+          },
+          "suggested_actions": {
+            "items": {
+              "$ref": "#/components/schemas/SuggestedAction"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Suggested Actions"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Limitations",
+            "default": []
+          },
+          "card_id": {
+            "type": "string",
+            "title": "Card Id"
+          },
+          "company_id": {
+            "type": "string",
+            "title": "Company Id"
+          },
+          "item_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Item Ids"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceRef"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "trace_id": {
+            "type": "string",
+            "title": "Trace Id"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/CardMeta"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role",
+            "description": "роль пользователя, для которой написан акцент карточки (ml.roles.Role)"
+          },
+          "channels": {
+            "items": {
+              "$ref": "#/components/schemas/ImpactChannel"
+            },
+            "type": "array",
+            "title": "Channels",
+            "description": "проверенные каналы влияния, если включена двухстадийная генерация",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "relevance",
+          "what_happened",
+          "why_it_matters",
+          "consequences",
+          "bank_view",
+          "ai_inference",
+          "suggested_actions",
+          "card_id",
+          "company_id",
+          "item_ids",
+          "sources",
+          "trace_id",
+          "meta"
+        ],
+        "title": "InsightCard"
+      },
+      "MarketPosition": {
+        "properties": {
+          "okved_prefix": {
+            "type": "string",
+            "title": "Okved Prefix",
+            "description": "префикс ОКВЭД сравнения, например 41.2"
+          },
+          "digits": {
+            "type": "integer",
+            "title": "Digits",
+            "description": "сколько цифр кода в префиксе: 4, 3 или 2"
+          },
+          "peers": {
+            "type": "integer",
+            "title": "Peers",
+            "description": "сколько субъектов в сравнении, включая саму компанию или группу"
+          },
+          "rank": {
+            "type": "integer",
+            "title": "Rank",
+            "description": "место по выручке, 1 = крупнейшая"
+          },
+          "percentile": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Percentile",
+            "description": "доля остальных субъектов сравнения с меньшей выручкой"
+          },
+          "revenue_share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revenue Share",
+            "description": "выручка / суммарная выручка сравнения, доля от 0 до 1"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "okved_prefix",
+          "digits",
+          "peers",
+          "rank",
+          "percentile",
+          "note"
+        ],
+        "title": "MarketPosition",
+        "description": "Положение компании среди компаний выборки банка с тем же префиксом ОКВЭД (по выручке). Это не доля рынка РФ."
+      },
+      "Network": {
+        "properties": {
+          "top_counterparties": {
+            "items": {
+              "$ref": "#/components/schemas/Counterparty"
+            },
+            "type": "array",
+            "title": "Top Counterparties",
+            "default": []
+          },
+          "counterparty_sectors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Counterparty Sectors",
+            "default": []
+          },
+          "known_share": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Known Share",
+            "description": "доля оборота с известными контрагентами"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Network"
+      },
+      "Question": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "title": "Question"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question"
+        ],
+        "title": "Question"
+      },
+      "Relevance": {
+        "properties": {
+          "score": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Reasons"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "score",
+          "reasons"
+        ],
+        "title": "Relevance"
+      },
+      "Role": {
+        "type": "string",
+        "enum": [
+          "owner",
+          "ceo",
+          "cfo",
+          "treasurer",
+          "chief_accountant",
+          "other"
+        ],
+        "title": "Role"
+      },
+      "ScenarioAnalysis": {
+        "properties": {
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "key_uncertainty": {
+            "type": "string",
+            "title": "Key Uncertainty"
+          },
+          "decisions": {
+            "items": {
+              "$ref": "#/components/schemas/ScenarioDecision"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Decisions"
+          },
+          "recommendation": {
+            "type": "string",
+            "title": "Recommendation"
+          },
+          "switch_signals": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Switch Signals",
+            "default": []
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Limitations",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "summary",
+          "key_uncertainty",
+          "decisions",
+          "recommendation"
+        ],
+        "title": "ScenarioAnalysis",
+        "description": "Разбор веток: что общего, от чего зависит выбор, какие решения устойчивы."
+      },
+      "ScenarioBranch": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "assumption": {
+            "type": "string",
+            "title": "Assumption",
+            "description": "условие ветки: что должно произойти; это гипотеза, не факт"
+          },
+          "likelihood": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "title": "Likelihood",
+            "description": "качественная оценка; процентов нет"
+          },
+          "likelihood_basis": {
+            "type": "string",
+            "title": "Likelihood Basis"
+          },
+          "impact": {
+            "type": "string",
+            "title": "Impact",
+            "description": "что будет с этой компанией, если ветка реализуется"
+          },
+          "company_features_used": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Company Features Used",
+            "description": "пути полей профиля"
+          },
+          "risks": {
+            "items": {
+              "$ref": "#/components/schemas/Claim"
+            },
+            "type": "array",
+            "title": "Risks",
+            "default": []
+          },
+          "opportunities": {
+            "items": {
+              "$ref": "#/components/schemas/Claim"
+            },
+            "type": "array",
+            "title": "Opportunities",
+            "default": []
+          },
+          "signals": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Signals",
+            "description": "наблюдаемые признаки, что события идут по этой ветке"
+          },
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/SuggestedAction"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Actions"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Limitations",
+            "default": []
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "good",
+              "base",
+              "bad"
+            ],
+            "title": "Kind"
+          },
+          "verifier_issues": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Verifier Issues",
+            "description": "замечания проверки, оставшиеся после повтора",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "title",
+          "assumption",
+          "likelihood",
+          "likelihood_basis",
+          "impact",
+          "company_features_used",
+          "signals",
+          "actions",
+          "kind"
+        ],
+        "title": "ScenarioBranch"
+      },
+      "ScenarioDecision": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "robust",
+              "conditional",
+              "hedge"
+            ],
+            "title": "Type",
+            "description": "robust: не вредит ни в одной ветке; conditional: запускать по сигналу; hedge: страховка от плохой ветки"
+          },
+          "effects": {
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "helps",
+                "neutral",
+                "hurts"
+              ]
+            },
+            "propertyNames": {
+              "enum": [
+                "good",
+                "base",
+                "bad"
+              ]
+            },
+            "type": "object",
+            "title": "Effects"
+          },
+          "rationale": {
+            "type": "string",
+            "title": "Rationale"
+          },
+          "trigger": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trigger",
+            "description": "сигнал, при котором решение запускается (для conditional)"
+          },
+          "from_branches": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "good",
+                "base",
+                "bad"
+              ]
+            },
+            "type": "array",
+            "title": "From Branches",
+            "default": []
+          },
+          "is_model_inference": {
+            "type": "boolean",
+            "title": "Is Model Inference",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text",
+          "type",
+          "effects",
+          "rationale"
+        ],
+        "title": "ScenarioDecision",
+        "description": "Решение, разобранное по всем веткам: что оно даёт в каждой."
+      },
+      "ScenarioFork": {
+        "properties": {
+          "variable": {
+            "type": "string",
+            "title": "Variable",
+            "description": "что именно неизвестно: внешний фактор, а не решение компании"
+          },
+          "outcomes": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "propertyNames": {
+              "enum": [
+                "good",
+                "base",
+                "bad"
+              ]
+            },
+            "type": "object",
+            "title": "Outcomes",
+            "description": "условие каждого исхода, одна фраза"
+          },
+          "base_basis": {
+            "type": "string",
+            "enum": [
+              "bank_forecast",
+              "item_expectation",
+              "assumption"
+            ],
+            "title": "Base Basis",
+            "description": "на чём стоит базовый исход: прогноз банка, ожидание из материала, допущение модели"
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "variable",
+          "outcomes",
+          "base_basis"
+        ],
+        "title": "ScenarioFork",
+        "description": "Развилка: одна внешняя неопределённость и три исхода. Общая ось, по которой пишутся все ветки."
+      },
+      "ScenarioMeta": {
+        "properties": {
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "prompt_version": {
+            "type": "string",
+            "title": "Prompt Version"
+          },
+          "generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Generated At"
+          },
+          "card_generated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Card Generated At",
+            "description": "когда сделана карточка, на которой стоят сценарии; новая карточка = сценарии устарели"
+          },
+          "retries": {
+            "type": "integer",
+            "title": "Retries",
+            "default": 0
+          },
+          "cost_rub": {
+            "type": "number",
+            "title": "Cost Rub",
+            "default": 0.0
+          },
+          "verifier_issues": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Verifier Issues",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "model",
+          "prompt_version",
+          "generated_at",
+          "card_generated_at"
+        ],
+        "title": "ScenarioMeta"
+      },
+      "ScenarioSet": {
+        "properties": {
+          "set_id": {
+            "type": "string",
+            "title": "Set Id"
+          },
+          "card_id": {
+            "type": "string",
+            "title": "Card Id"
+          },
+          "company_id": {
+            "type": "string",
+            "title": "Company Id"
+          },
+          "item_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Item Ids"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "fork": {
+            "$ref": "#/components/schemas/ScenarioFork"
+          },
+          "branches": {
+            "items": {
+              "$ref": "#/components/schemas/ScenarioBranch"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "minItems": 3,
+            "title": "Branches"
+          },
+          "analysis": {
+            "$ref": "#/components/schemas/ScenarioAnalysis"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceRef"
+            },
+            "type": "array",
+            "title": "Sources"
+          },
+          "trace_id": {
+            "type": "string",
+            "title": "Trace Id"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ScenarioMeta"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "set_id",
+          "card_id",
+          "company_id",
+          "item_ids",
+          "fork",
+          "branches",
+          "analysis",
+          "sources",
+          "trace_id",
+          "meta"
+        ],
+        "title": "ScenarioSet"
+      },
+      "Size": {
+        "properties": {
+          "revenue_rub": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revenue Rub"
+          },
+          "revenue_band": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revenue Band"
+          },
+          "workers_band": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workers Band",
+            "description": "AMOUNT_WORKERS_FNS_GRADATION"
+          },
+          "age_band": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Band"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Size"
+      },
+      "SourceKind": {
+        "type": "string",
+        "enum": [
+          "news",
+          "bank_analytics",
+          "synthetic_test"
+        ],
+        "title": "SourceKind"
+      },
+      "SourceRef": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/SourceKind"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "doc_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Doc Id"
+          },
+          "page": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page"
+          },
+          "quote": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quote"
+          },
+          "stale": {
+            "type": "boolean",
+            "title": "Stale",
+            "description": "материал старый, может быть неактуален",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "title"
+        ],
+        "title": "SourceRef"
+      },
+      "SuggestedAction": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "horizon": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Horizon"
+          },
+          "evidence": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Evidence",
+            "default": []
+          },
+          "is_model_inference": {
+            "type": "boolean",
+            "title": "Is Model Inference",
+            "default": false
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "action",
+              "question_for_analysis"
+            ],
+            "title": "Type"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text",
+          "type"
+        ],
+        "title": "SuggestedAction"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "WhatHappened": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "facts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Facts",
+            "description": "id фактов из ParsedItem",
+            "default": []
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "WhatHappened"
+      },
+      "WhyItMatters": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "title": "Text"
+          },
+          "company_features_used": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Company Features Used",
+            "description": "пути полей профиля, например bank_products.loan"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text",
+          "company_features_used"
+        ],
+        "title": "WhyItMatters"
+      }
+    }
+  }
+}

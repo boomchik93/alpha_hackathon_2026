@@ -1,4 +1,4 @@
-"""Разметка релевантности двумя LLM (IMPROVEMENTS.md, E3).
+"""Разметка релевантности двумя LLM.
 
     python -m ml.eval.label_llm             # все компании companies_v2.json x материалы eval
     python -m ml.eval.label_llm --mock

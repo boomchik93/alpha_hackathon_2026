@@ -1,4 +1,4 @@
-"""Проверка порогов двухуровневой ленты на данных разработки (FEED_TIERS_PLAN.md, этап 4). Без LLM.
+"""Проверка порогов двухуровневой ленты на данных разработки. Без LLM.
 
     ML_AS_OF=2026-10-22 python -m ml.eval.tier_check          # -> ml/eval/tier_check.md + tier_check.json
 

@@ -7,6 +7,7 @@ __pycache__/
 *.zip
 /data/
 /var/
+/var_live/
 var.bak-*/
 node_modules/
 dist/

@@ -27,7 +27,14 @@ python -m pytest backend/news_collector/tests          # без сети
 | `taxonomy.json` | расшифровка тегов |
 | `news.db` | SQLite: статьи и события, история сбора |
 
-Чтобы ML-слой взял эти записи, скопируйте строки `raw_items.jsonl` в вход `ingest` или подключите файл в `fetch_news()` (сейчас там `fixtures` или `rss`).
+ML-слой читает файл напрямую: `NEWS_SOURCE=collector` (путь можно сменить `NEWS_COLLECTOR_FILE`).
+
+```bash
+make collect                          # свежие новости -> var/news_collector/raw_items.jsonl
+NEWS_SOURCE=collector make build      # разбор, события, BM25 -> var/items.jsonl (parse_item вызывает Gemma: платно при промахе кэша)
+```
+
+Внимание: `make items` перезаписывает `var/items.jsonl`, на котором считаются метрики ленты. Сделайте копию `var/` заранее.
 Очистка инструкций из текста (`ml/safety.strip_injections`) происходит в ML-слое до разбора: сборщик отдаёт тексты как есть, считайте их недоверенными.
 
 ## Как это работает

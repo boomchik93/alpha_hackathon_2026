@@ -115,3 +115,12 @@ def test_audit_records_scenarios(client, alice):
     client.get(SCENARIOS, headers=alice)
     rows = client.get("/api/admin/audit", headers=login(client, "adm")).json()
     assert any(r["action"] == "scenarios" and r["company_id"] == COMPANY and r["item_id"] == ITEM and r["detail"] == "cfo" for r in rows)
+
+
+def test_reopening_ready_scenarios_is_free(fake_ml, tmp_path):
+    with make_client(ml_transport(), tmp_path, limit_scenarios_per_10m=1) as client:
+        alice = login(client, "alice")
+        assert client.get(SCENARIOS, headers=alice).status_code == 200
+        for _ in range(3):
+            assert client.get(SCENARIOS, headers=alice).status_code == 200
+        assert_error(client.get(f"{INSIGHT.replace(ITEM, 'n_fx')}/scenarios", headers=alice), 429, "rate_limited")

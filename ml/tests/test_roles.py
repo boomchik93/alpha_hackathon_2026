@@ -1,4 +1,4 @@
-"""Роли пользователей (REVIEW_PLAN.md, T17)."""
+"""Роли пользователей."""
 
 import pytest
 from fastapi.testclient import TestClient
@@ -23,7 +23,10 @@ class Spy(LLMClient):
 def test_role_blocks():
     assert role_block(None) == "" and role_block(Role.other) == ""
     assert "ликвидность" in role_block(Role.treasurer) and "налоги" in role_block(Role.chief_accountant)
-    assert "стоимость долга" in ROLE_FOCUS[Role.cfo] and "стоимость долга" in ROLE_FOCUS[Role.owner]
+    assert "стоимость долга" in ROLE_FOCUS[Role.cfo] and "стоимость долга" not in ROLE_FOCUS[Role.owner]
+    # У каждой роли со своим акцентом он отличается от остальных: иначе смена роли не меняет карточку.
+    focuses = [f for f in ROLE_FOCUS.values() if f]
+    assert len(focuses) == len(set(focuses))
     assert card_suffix(None) == "" and card_suffix(Role.cfo) == "_cfo"
 
 

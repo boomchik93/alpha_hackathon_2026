@@ -8,6 +8,8 @@ __pycache__
 *.zip
 data
 var
+var_live
 var.bak-*
 ml/eval/review_*
 ml/docs/
+dist

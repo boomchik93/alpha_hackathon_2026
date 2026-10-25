@@ -76,7 +76,8 @@ TRACE = {
     "trace_id": "tr_test", "kind": "insight", "started_at": 0, "duration_s": 12.5, "cost_rub": 0.42, "retries": 1,
     "events": [
         {"t": 0, "event": "start", "company_id": COMPANY, "item_id": ITEM, "mock": True},
-        {"t": 0.1, "event": "plan", "steps": [{"tool": "compute_exposure", "why": "найти признаки профиля"}]},
+        {"t": 0.1, "event": "plan", "steps": [{"tool": "compute_exposure", "why": "найти признаки профиля"},
+                                      {"tool": None, "why": "интерпретация, затем самопроверка"}]},
         {"t": 0.2, "event": "tool_call", "tool": "compute_exposure", "args": {"company_id": COMPANY}, "result": "dict", "ms": 12},
         {"t": 1.0, "event": "llm_call", "model": "glm", "prompt": "СЕКРЕТНЫЙ ПРОМПТ", "cost_rub": 0.2},
         {"t": 2.0, "event": "verify", "attempt": 0, "issues": ["цифра 15% не найдена"]},

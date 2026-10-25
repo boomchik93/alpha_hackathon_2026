@@ -3,7 +3,7 @@ import type { Api } from './api'
 import type { ApiError, InsightCard, JobView, Ready, Role, ScenarioSet } from './types'
 import { token } from './token'
 
-const BASE = import.meta.env.VITE_API_URL ?? '/api'
+const BASE = import.meta.env.VITE_API_URL ?? `${import.meta.env.BASE_URL}api`
 
 async function req(path: string, init: RequestInit = {}): Promise<Response> {
   const headers = new Headers(init.headers)

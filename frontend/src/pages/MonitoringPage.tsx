@@ -78,6 +78,10 @@ function Dashboard({ h, f, rows, showAudit }: { h: Health; f: FeedbackSummary; r
       </section>
       </div>
     </div>
+    <div className="monitor-grid">
+      <Usage f={f} />
+      <ItemsByDay days={f.items_by_day} />
+    </div>
     {showAudit && <section className="surface traces-card">
       <div className="section-title"><div><Eyebrow>Журнал</Eyebrow><h3>Последние обращения</h3></div><Pill>{rows.length}</Pill></div>
       <div className="traces-table">
@@ -92,4 +96,31 @@ function Dashboard({ h, f, rows, showAudit }: { h: Health; f: FeedbackSummary; r
       </div>
     </section>}
   </>
+}
+
+// Что пользователи делают после открытия карточки: вопрос, первоисточник, трасса, оценка (метрика из product/metrics.md).
+const USAGE_ROWS: [string, string][] = [['insight', 'Открыли карточку'], ['followup', 'Задали вопрос'], ['source', 'Открыли первоисточник'], ['trace', 'Смотрели трассу'], ['feedback', 'Оценили']]
+
+function Usage({ f }: { f: FeedbackSummary }) {
+  const a = f.usage?.actions ?? {}
+  const max = Math.max(1, ...USAGE_ROWS.map(([k]) => a[k]?.count ?? 0))
+  return <section className="surface quality-chart">
+    <div className="section-title"><div><Eyebrow>Вовлечённость · {f.usage?.days ?? 7} дней</Eyebrow><h3>Что делают после карточки</h3></div>
+      {f.usage?.actions_per_card != null && <Pill tone="success">{String(f.usage.actions_per_card).replace('.', ',')} действия на карточку</Pill>}</div>
+    {USAGE_ROWS.map(([k, l]) => <div className="bar-row" key={k}><span>{l}</span><div><i className="good" style={{ width: `${((a[k]?.count ?? 0) / max) * 100}%` }} /></div><b>{a[k]?.count ?? 0}</b></div>)}
+    {!f.usage && <p className="muted">Бэкенд не вернул журнал обращений.</p>}
+  </section>
+}
+
+// Поступление материалов по дням публикации: день без новых материалов означает остановку сборщика.
+function ItemsByDay({ days }: { days?: Record<string, number> | null }) {
+  const rows = Object.entries(days ?? {})
+  const max = Math.max(1, ...rows.map(([, n]) => n))
+  const empty = rows.filter(([, n]) => n === 0).length
+  return <section className="surface quality-chart">
+    <div className="section-title"><div><Eyebrow>Источники</Eyebrow><h3>Новые материалы по дням</h3></div>
+      {rows.length > 0 && <Pill tone={empty ? 'warning' : 'success'}>{empty ? `${empty} дн. без материалов` : 'поступают каждый день'}</Pill>}</div>
+    {rows.map(([d, n]) => <div className="bar-row" key={d}><span>{fmtDate(d, true)}</span><div><i className={n ? 'good' : ''} style={{ width: `${(n / max) * 100}%` }} /></div><b>{n}</b></div>)}
+    {!rows.length && <p className="muted">ML-сервис не вернул поступление материалов.</p>}
+  </section>
 }

@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
+from ml.agent.humanize import humanize
 from ml.agent.orchestrator import load_card, run_insight
 from ml.agent.scenarios import cached_scenarios, run_scenarios
 from ml.agent.trace import Trace
@@ -71,8 +72,8 @@ def get_scenarios(company_id: str, item_id: str, refresh: bool = False, role: Ro
     Для карточки со слабой связью (relevance < 0,3) бросает `NotApplicable`."""
     card = get_insight(company_id, item_id, role=role)
     if not refresh and (cached := cached_scenarios(card)) is not None:
-        return cached
-    return run_scenarios(card, role=role)
+        return humanize(cached)
+    return humanize(run_scenarios(card, role=role))
 
 
 class _QA(BaseModel):
@@ -136,6 +137,6 @@ def answer_followup(card_id: str, question: str, role: Role | None = None) -> Fo
             refs.append(SourceRef(id=c.chunk_id, kind=SourceKind.bank_analytics, title=c.title, published_at=c.published_at,
                                   doc_id=c.doc_id, page=c.page, quote=c.text[:400], stale=c.stale))
     trace.save()
-    return FollowupAnswer(card_id=card_id, question=question, answer=res.answer, source_ids=ids, sources=refs,
-                          is_model_inference=res.is_model_inference or not ids or bool(issues),
-                          verifier_issues=issues, trace_id=trace.trace_id)
+    return humanize(FollowupAnswer(card_id=card_id, question=question, answer=res.answer, source_ids=ids, sources=refs,
+                                   is_model_inference=res.is_model_inference or not ids or bool(issues),
+                                   verifier_issues=issues, trace_id=trace.trace_id))
