@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, BadgeCheck, Bot, Building2, Check, Copy, Landmark, RotateCw, Search, ShieldCheck, Wrench } from 'lucide-react'
+import { ArrowLeft, BadgeCheck, Bot, Building2, Check, Landmark, RotateCw, Search, ShieldCheck, Wrench } from 'lucide-react'
 import { api } from '../../api'
 import { useCard, useCompany, useFeed } from '../../api/hooks'
 import type { ApiError } from '../../api/types'
@@ -14,7 +14,7 @@ const TOOL_LABEL: Record<string, string> = {
   get_item: 'Чтение материала', get_company_profile: 'Профиль компании', search_bank_analytics: 'Поиск в аналитике банка',
   verify_card: 'Проверка цифр и цитат', 'llm.generate': 'Генерация текста', get_feed: 'Лента компании',
 }
-const toolLabel = (t: string) => TOOL_LABEL[t] ?? t
+const toolLabel = (t: string) => TOOL_LABEL[t] ?? 'Обработка данных'
 const TOOL_ICON: Record<string, typeof Search> = { get_item: Search, get_company_profile: Building2, search_bank_analytics: Landmark, verify_card: ShieldCheck, 'llm.generate': Bot }
 
 // Первоисточник (К10): PDF аналитики банка открывается на нужной странице, у новости — ссылка на сайт.
@@ -36,7 +36,7 @@ export function SourcePage() {
   }, [pdf.data])
 
   return <div className="page source-page">
-    <button className="back-button" onClick={() => navigate(-1)}><ArrowLeft size={18} /> К карточке</button>
+    <button className="back-button" onClick={() => navigate(`/insight/${itemId}`)}><ArrowLeft size={18} /> К карточке</button>
     {error && <ErrorBanner error={error} />}
     {pending && <div className="skel-stack"><Skel w="40%" h={36} /><Skel w="70%" /></div>}
     {card && !src && <ErrorBanner error={{ status: 404, code: 'not_found', message: 'Источник не найден в карточке' }} />}
@@ -81,7 +81,6 @@ export function TracePage() {
   const feed = useFeed(s.companyId)
   const company = useCompany(s.companyId)
   const trace = useQuery({ queryKey: ['trace', card?.card_id], queryFn: () => api.cardTrace(card!.card_id), enabled: !!card, retry: false })
-  const [copied, setCopied] = useState(false)
   const full = s.user?.access !== 'user'
 
   if (!card) return <div className="page">{error ? <ErrorBanner error={error} /> : pending ? <div className="skel-stack"><Skel w="40%" h={36} /><Skel w="70%" /></div> : null}</div>
@@ -89,10 +88,9 @@ export function TracePage() {
   const title = cardTitle(card, feed.data?.entries.find(e => e.item_id === itemId))
   const ms = (v: number | null) => (v === null ? '—' : v >= 1000 ? `${(v / 1000).toFixed(1).replace('.', ',')} с` : `${v} мс`)
   const lastCheck = t?.checks.at(-1)
-  const copy = async () => { try { await navigator.clipboard.writeText(card.trace_id); setCopied(true); setTimeout(() => setCopied(false), 1500) } catch { /* буфер недоступен */ } }
 
   return <div className="page">
-    <button className="back-button" onClick={() => navigate(-1)}><ArrowLeft size={18} /> К карточке</button>
+    <button className="back-button" onClick={() => navigate(`/insight/${itemId}`)}><ArrowLeft size={18} /> К карточке</button>
     <PageHeader eyebrow="Трассируемость" title="Как получен вывод" subtitle={title ? `Карточка «${title}»` : undefined} action={lastCheck && (lastCheck.issues ? <Pill tone="warning">Замечаний проверки: {lastCheck.issues}</Pill> : <Pill tone="success"><Check size={13} /> Проверка пройдена</Pill>)} />
     {trace.error && <ErrorBanner error={trace.error as unknown as ApiError} onRetry={() => trace.refetch()} />}
     {trace.isLoading && <div className="skel-stack"><Skel w="60%" /><Skel w="80%" /></div>}
@@ -106,10 +104,8 @@ export function TracePage() {
       </section>
       <aside className="surface trace-meta">
         <h3>Параметры запуска</h3>
-        {[['Модель', t.model ?? '—'], ['Промпт', t.prompt_version ?? '—'], ['Роль', card.role ? ROLE_LABEL[card.role] : '—'], ['Длительность', t.duration_s === null ? '—' : `${t.duration_s.toFixed(1).replace('.', ',')} с`], ['Повторов', String(t.retries)], ['Источников', String(t.sources.length)], ...(full && t.cost_rub !== undefined ? [['Стоимость', `${t.cost_rub.toFixed(2).replace('.', ',')} ₽`]] : [])].map(([a, b]) => <div key={a}><span>{a}</span><b>{b}</b></div>)}
+        {[[ 'Роль', card.role ? ROLE_LABEL[card.role] : 'Без ролевого акцента'], ['Длительность', t.duration_s === null ? '—' : `${t.duration_s.toFixed(1).replace('.', ',')} с`], ['Повторов', String(t.retries)], ['Источников', String(t.sources.length)], ...(full && t.cost_rub !== undefined ? [['Стоимость', `${t.cost_rub.toFixed(2).replace('.', ',')} ₽`]] : [])].map(([a, b]) => <div key={a}><span>{a}</span><b>{b}</b></div>)}
         {!full && <p className="trace-hint">Полная трасса с расходом доступна эксперту и администратору.</p>}
-        <hr /><b>Trace ID</b><code>{t.trace_id}</code>
-        <button className="secondary-button" onClick={copy}>{copied ? <><Check size={15} /> Скопировано</> : <><Copy size={15} /> Скопировать</>}</button>
       </aside>
     </div>}
   </div>

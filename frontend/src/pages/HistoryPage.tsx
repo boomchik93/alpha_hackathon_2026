@@ -30,7 +30,7 @@ export default function HistoryPage() {
   return <div className="page history-page">
     <PageHeader eyebrow="Уточняющие вопросы" title="История вопросов" subtitle="Вопросы по карточкам событий и ответы. История хранится в этом браузере." />
     <div className="history-tools">
-      <label className="search-field" htmlFor="history-search"><Search size={17} /><input id="history-search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по вопросам и ответам" /></label>
+      <label className="search-field" htmlFor="history-search"><Search size={17} /><input id="history-search" name="history-search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Поиск по вопросам и ответам" autoComplete="off" /></label>
       <label className="switch-row inline"><input type="checkbox" checked={onlyCompany} onChange={e => setOnlyCompany(e.target.checked)} /><span className="switch" />Только текущая компания</label>
     </div>
     {q.error && <ErrorBanner error={q.error as never} onRetry={() => q.refetch()} />}

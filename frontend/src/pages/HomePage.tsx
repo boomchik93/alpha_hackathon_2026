@@ -28,7 +28,7 @@ export default function HomePage() {
   const first = top.find(e => e.item_id === sum.data?.top?.item_id) ?? top[0]
 
   return <div className="page dashboard-page">
-    <PageHeader eyebrow={fmtDate(new Date().toISOString())} title={greeting()} subtitle={company.data ? `${companyLabel(company.data)} · ${company.data.company_id} · ${company.data.geo.region ?? 'регион не указан'}` : ' '} />
+    <PageHeader eyebrow={fmtDate(new Date().toISOString())} title={greeting()} subtitle={company.data ? `${companyLabel(company.data)} · ${company.data.geo.region ?? 'регион не указан'}` : ' '} />
 
     {/* Главная точка входа в сервис (К09) */}
     <section className="signal-hero">

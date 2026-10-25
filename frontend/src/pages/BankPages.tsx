@@ -1,21 +1,20 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Building2, Check, Clock3, Landmark, Lightbulb, ShieldCheck, TrendingUp, WalletCards } from 'lucide-react'
-import { Dropdown, Eyebrow, PageHeader, Pill } from '../components/ui'
+import { Eyebrow, PageHeader, Pill } from '../components/ui'
 import { TASKS } from './HomePage'
 
 // Антураж интернет-банка: счета и задачи. Данные выдуманы, в прототипе не связаны с API.
 export function FinancesPage() {
   const navigate = useNavigate()
-  const [period, setPeriod] = useState('30')
   const accounts = [
     ['Расчётный счёт · RUB', '•• 4417', '1 102 340 120 ₽', '+ 48 600 000 ₽'],
     ['Валютный счёт · USD', '•• 9031', '1 874 210,55 $', '+ 1 240 000 $'],
     ['Валютный счёт · TRY', '•• 9058', '42 118 900 ₺', '− 3 100 000 ₺'],
   ]
   return <div className="page finance-page">
-    <button className="back-button" onClick={() => navigate(-1)}><ArrowLeft size={18} /> Назад</button>
-    <PageHeader eyebrow="Финансы" title="Счета и остатки" subtitle="Движение денег и доступная ликвидность компании." action={<Dropdown ariaLabel="Период" value={period} onChange={setPeriod} options={[{ value: '7', label: '7 дней' }, { value: '30', label: '30 дней' }, { value: '90', label: '90 дней' }]} compact />} />
+    <button className="back-button" onClick={() => navigate('/')}><ArrowLeft size={18} /> На главную</button>
+    <PageHeader eyebrow="Финансы" title="Счета и остатки" subtitle="Движение денег и доступная ликвидность компании." />
     <section className="finance-summary"><div><span>Доступно сейчас, в рублёвом эквиваленте</span><b>1 284 560 312 ₽</b><small><TrendingUp /> +3,1% за 30 дней</small></div><div className="finance-orbit"><WalletCards /><span>3 счёта</span></div></section>
     <div className="finance-grid">
       <section className="surface cashflow-card"><div className="section-title"><div><Eyebrow>Денежный поток</Eyebrow><h3>Поступления и списания</h3></div><Pill tone="success">+38,4 млн ₽</Pill></div><div className="cashflow-chart" aria-label="График денежного потока">{[32, 46, 39, 62, 55, 73, 49, 67, 82, 64, 91, 78].map((h, i) => <i key={i} style={{ height: `${h}%` }} className={i === 10 ? 'peak' : ''} />)}</div><div className="chart-legend"><span><i className="income" />Поступления · 412,6 млн ₽</span><span><i />Списания · 374,2 млн ₽</span></div></section>
@@ -34,7 +33,7 @@ export function TasksPage() {
   const toggle = (i: number) => setDone(c => (c.includes(i) ? c.filter(x => x !== i) : [...c, i]))
   const visible = TASKS.map((t, i) => ({ t, i })).filter(({ i }) => (tab === 'done' ? done.includes(i) : !done.includes(i)))
   return <div className="page tasks-page">
-    <button className="back-button" onClick={() => navigate(-1)}><ArrowLeft size={18} /> Назад</button>
+    <button className="back-button" onClick={() => navigate('/')}><ArrowLeft size={18} /> На главную</button>
     <PageHeader eyebrow="На контроле" title="Ближайшие действия" subtitle="Задачи, которые требуют внимания финансовой команды." action={<Pill tone="red">{TASKS.length - done.length} активных</Pill>} />
     <div className="tasks-layout">
       <section className="surface tasks-list">

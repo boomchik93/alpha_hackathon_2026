@@ -49,12 +49,17 @@ export function ErrorBanner({ error, onRetry }: { error: ApiError; onRetry?: () 
 export function Modal({ title, eyebrow, onClose, children, wide = false }: { title: string; eyebrow?: string; onClose(): void; children: ReactNode; wide?: boolean }) {
   useEffect(() => {
     const h = (e: globalThis.KeyboardEvent) => e.key === 'Escape' && onClose()
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
     window.addEventListener('keydown', h)
-    return () => window.removeEventListener('keydown', h)
+    return () => {
+      window.removeEventListener('keydown', h)
+      document.body.style.overflow = previousOverflow
+    }
   }, [onClose])
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className={`modal surface ${wide ? 'wide' : ''}`} role="dialog" aria-label={title} onClick={e => e.stopPropagation()}>
+      <div className={`modal surface ${wide ? 'wide' : ''}`} role="dialog" aria-modal="true" aria-label={title} onClick={e => e.stopPropagation()}>
         <div className="modal-head"><div>{eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}<h2>{title}</h2></div><button className="icon-button" onClick={onClose} aria-label="Закрыть"><X size={20} /></button></div>
         <div className="modal-body">{children}</div>
       </div>

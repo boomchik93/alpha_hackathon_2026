@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { ArrowRight, Bell, Building2, CircleAlert, Gauge, HelpCircle, Home, MessageSquareText, Moon, PanelLeftClose, Settings, Sparkles, Sun, TrendingDown } from 'lucide-react'
+import { ArrowRight, ArrowUp, Bell, Building2, CircleAlert, Gauge, Home, MessageSquareText, Moon, PanelLeftClose, Sparkles, Sun, TrendingDown } from 'lucide-react'
 import { USE_MOCK } from '../api'
 import { useCompanies, useCompany, useFeed, useSummary } from '../api/hooks'
 import type { Role } from '../api/types'
@@ -29,8 +29,10 @@ export function Shell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [showScrollTop, setShowScrollTop] = useState(false)
   const [theme, setTheme] = useTheme()
   const actionsRef = useRef<HTMLDivElement>(null)
+  const scrollAnimationRef = useRef<number | null>(null)
   const companies = useCompanies(s.user?.login)
   const company = useCompany(s.companyId)
   const summary = useSummary(s.companyId)
@@ -38,6 +40,15 @@ export function Shell({ children }: { children: ReactNode }) {
   const newCount = summary.data?.new_count ?? 0
 
   useEffect(() => { window.scrollTo(0, 0); setNotificationsOpen(false); setProfileOpen(false) }, [loc.pathname])
+  useEffect(() => {
+    const updateScrollTop = () => setShowScrollTop(window.scrollY > 360)
+    updateScrollTop()
+    window.addEventListener('scroll', updateScrollTop, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', updateScrollTop)
+      if (scrollAnimationRef.current !== null) cancelAnimationFrame(scrollAnimationRef.current)
+    }
+  }, [])
   useEffect(() => {
     if (!notificationsOpen && !profileOpen) return
     const close = (event: MouseEvent) => { if (!actionsRef.current?.contains(event.target as Node)) { setNotificationsOpen(false); setProfileOpen(false) } }
@@ -57,10 +68,32 @@ export function Shell({ children }: { children: ReactNode }) {
   const initials = (s.user?.display_name ?? '').split(/[\s,]+/).filter(Boolean).slice(0, 2).map(x => x[0].toUpperCase()).join('')
   const top = feed.data?.entries ?? []
   const dataWarn = company.data?.data_quality.notes[0] ?? (company.data?.data_quality.missing_fields.length ? 'Часть полей профиля не заполнена: выводы будут осторожнее' : undefined)
+  const scrollToTop = () => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      window.scrollTo(0, 0)
+      return
+    }
+    if (scrollAnimationRef.current !== null) cancelAnimationFrame(scrollAnimationRef.current)
+    const startY = window.scrollY
+    const startedAt = performance.now()
+    const duration = 360
+    const animate = (now: number) => {
+      const progress = Math.min((now - startedAt) / duration, 1)
+      const eased = 1 - (1 - progress) ** 4
+      window.scrollTo(0, Math.round(startY * (1 - eased)))
+      if (progress < 1) scrollAnimationRef.current = requestAnimationFrame(animate)
+      else scrollAnimationRef.current = null
+    }
+    scrollAnimationRef.current = requestAnimationFrame(animate)
+  }
 
   return <div className={`app-shell ${collapsed ? 'is-collapsed' : ''}`}>
     <aside className="sidebar">
-      <div className="side-top"><Logo compact={collapsed} /><button className="icon-button collapse" onClick={() => setCollapsed(!collapsed)} aria-label={collapsed ? 'Развернуть меню' : 'Свернуть меню'}><PanelLeftClose size={19} /></button></div>
+      <div className="side-top">
+        {collapsed
+          ? <button className="compact-logo-button" onClick={() => setCollapsed(false)} aria-label="Развернуть меню"><Logo compact /></button>
+          : <><Logo /><button className="icon-button collapse" onClick={() => setCollapsed(true)} aria-label="Свернуть меню"><PanelLeftClose size={19} /></button></>}
+      </div>
       <nav>
         {items.map(({ to, icon: Icon, label, count }) => <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => `nav-item ${isActive || isFeed(to) ? 'active' : ''}`} title={label}>
           <Icon size={20} /><span>{label}</span>{!!count && <b className="nav-count">{count}</b>}
@@ -68,8 +101,6 @@ export function Shell({ children }: { children: ReactNode }) {
       </nav>
       <div className="side-bottom">
         {USE_MOCK && <div className="demo-flag"><span>Демо · тестовые данные</span></div>}
-        <span className="nav-item muted-item" title="В прототипе не реализовано"><HelpCircle size={20} /><span>Помощь</span></span>
-        <span className="nav-item muted-item" title="В прототипе не реализовано"><Settings size={20} /><span>Настройки</span></span>
       </div>
     </aside>
     <div className="app-main">
@@ -107,6 +138,7 @@ export function Shell({ children }: { children: ReactNode }) {
       </header>
       <main>{children}</main>
     </div>
+    {showScrollTop && <button className="scroll-top-button" aria-label="Вернуться наверх" title="Наверх" onClick={scrollToTop}><ArrowUp size={20} /></button>}
     <div className="mobile-nav">{items.slice(0, 4).map(({ to, icon: Icon, label }) => <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => (isActive || isFeed(to) ? 'active' : '')}><Icon size={20} /><span>{label.split(' ')[0]}</span></NavLink>)}</div>
   </div>
 }

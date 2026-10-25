@@ -55,7 +55,7 @@ function Header({ card, entry }: { card?: InsightCard; entry?: FeedEntry }) {
       <p>{role && role !== 'other' ? `Персональная интерпретация для роли «${ROLE_LABEL[role].toLowerCase()}»` : 'Интерпретация без акцента на роль'}</p>
       <div className="feature-list">{reasons.map(r => <Pill key={r}>{r}</Pill>)}</div>
     </div>
-    {score !== undefined && <div className="big-score"><b style={ringStyle(score)}><span>{pct(score)}</span></b><em>Связь<br />с компанией</em></div>}
+    {score !== undefined && <div className="big-score"><b style={ringStyle(score)}><span>{pct(score)}</span></b><em>Релевантность</em></div>}
   </div>
 }
 
@@ -99,7 +99,7 @@ function Body({ card, entry, profile }: { card: InsightCard; entry?: FeedEntry; 
 
       <section className="story-section why" id="why"><div className="section-number">{n('why')}</div><div>
         <Eyebrow>Почему это важно вам</Eyebrow><h2 className="why-text">{card.why_it_matters.text}</h2>
-        <div className="feature-list">{card.why_it_matters.company_features_used.map(f => <Pill key={f} title={`Поле профиля: ${f}`}>{featureText(profile, f)}</Pill>)}</div>
+        <div className="feature-list">{card.why_it_matters.company_features_used.map(f => <Pill key={f}>{featureText(profile, f)}</Pill>)}</div>
       </div></section>
 
       <section className="story-section" id="cons"><div className="section-number">{n('cons')}</div><div className="full">
@@ -113,8 +113,8 @@ function Body({ card, entry, profile }: { card: InsightCard; entry?: FeedEntry; 
       <section className="story-section" id="act"><div className="section-number">{n('act')}</div><div className="full">
         <Eyebrow>Что можно сделать</Eyebrow><h2>Следующие шаги</h2>
         <ol className="action-list">
-          {actions.map((a, i) => <li key={a.text}><span>{i + 1}</span><div><b>{a.text}</b>{a.horizon && <small>{a.horizon}</small>}</div>{a.is_model_inference || !a.evidence.length ? <Pill tone="ai"><Bot size={13} /> Вывод модели</Pill> : <span className="claim-refs"><SourceButtons ids={a.evidence} sources={card.sources} onSource={onSource} active={active} /></span>}</li>)}
-          {questions.map(q => <li key={q.text} className="question-item"><span><MessageSquareText size={13} /></span><div><b>Вопрос для уточнения</b><p>{q.text}</p></div><button className="secondary-button" onClick={() => setPrefill({ text: q.text, n: Date.now() })}>Спросить <ArrowRight size={15} /></button></li>)}
+          {actions.map((a, i) => <li key={a.text}><span className="action-index">{i + 1}</span><div><b>{a.text}</b>{a.horizon && <small>{a.horizon}</small>}</div>{a.is_model_inference || !a.evidence.length ? <Pill tone="ai"><Bot size={13} /> Вывод модели</Pill> : <span className="claim-refs"><SourceButtons ids={a.evidence} sources={card.sources} onSource={onSource} active={active} /></span>}</li>)}
+          {questions.map(q => <li key={q.text} className="question-item"><span className="action-index"><MessageSquareText size={13} /></span><div><b>Вопрос для уточнения</b><p>{q.text}</p></div><button className="secondary-button" onClick={() => setPrefill({ text: q.text, n: Date.now() })}>Спросить <ArrowRight size={15} /></button></li>)}
         </ol>
       </div></section>
 
@@ -148,7 +148,7 @@ function Body({ card, entry, profile }: { card: InsightCard; entry?: FeedEntry; 
       {TOC.map(([k, l], i) => <a href={`#${k}`} key={k} onClick={e => { e.preventDefault(); go(k) }}><span>{String(i + 1).padStart(2, '0')}</span>{l}</a>)}
       <hr />
       <div><ShieldCheck /> {card.meta.verifier_issues.length ? 'Проверка с замечаниями' : 'Цифры и цитаты проверены'}</div>
-      <div><Bot /> {card.meta.model} · {card.meta.prompt_version}</div>
+      <div><Bot /> Персональный вывод модели</div>
       <div><Clock3 /> Собрана {fmtDate(card.meta.generated_at, true)}, {fmtTime(card.meta.generated_at)}</div>
     </aside>
   </div>

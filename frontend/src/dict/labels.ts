@@ -31,7 +31,7 @@ export const TOPIC_LABEL: Record<string, string> = {
   consumption: 'Потребление и розница', labor: 'Рынок труда', fx_gold: 'Валюта и внешние рынки',
   gdp_industry: 'ВВП и промышленность', steel: 'Металлургия и сталь',
 }
-export const topicLabel = (k: string) => TOPIC_LABEL[k] ?? k
+export const topicLabel = (k: string) => TOPIC_LABEL[k] ?? 'Другая тема'
 
 // Пути полей профиля (why_it_matters.company_features_used) → понятная подпись и значение из профиля.
 const FEATURE_LABEL: Record<string, string> = {
@@ -45,7 +45,7 @@ const FEATURE_LABEL: Record<string, string> = {
   'group.group_id': 'Группа компаний', 'group.group_revenue_rub': 'Выручка группы', 'market_position': 'Положение в отрасли',
 }
 export function featureLabel(path: string): string {
-  return FEATURE_LABEL[path] ?? path
+  return FEATURE_LABEL[path] ?? 'Данные профиля'
 }
 export function featureValue(profile: CompanyProfile | undefined, path: string): string | null {
   if (!profile) return null

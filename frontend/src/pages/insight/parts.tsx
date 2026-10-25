@@ -70,7 +70,7 @@ export function Feedback({ card }: { card: InsightCard }) {
   }
 
   return <section className="feedback">
-    <div><b>{sent ? 'Спасибо, оценка сохранена' : 'Была ли карточка полезна?'}</b><span>{sent ? `Оценка привязана к трассе ${card.trace_id}` : expert ? 'Вы оцениваете как сотрудник банка — оценка учтётся отдельно' : 'Это поможет улучшить следующие выводы'}</span></div>
+    <div><b>{sent ? 'Спасибо, оценка сохранена' : 'Была ли карточка полезна?'}</b><span>{sent ? 'Оценка учтена в мониторинге качества' : expert ? 'Вы оцениваете как сотрудник банка — оценка учтётся отдельно' : 'Это поможет улучшить следующие выводы'}</span></div>
     {!sent && <div>
       <button className={vote === 'up' ? 'selected' : ''} onClick={() => { setVote('up'); send('up') }}><ThumbsUp /> Да</button>
       <button className={vote === 'down' ? 'selected negative-select' : ''} onClick={() => setVote('down')}><ThumbsDown /> Нет</button>
@@ -79,7 +79,7 @@ export function Feedback({ card }: { card: InsightCard }) {
     {vote === 'down' && !sent && <div className="feedback-reasons">
       <span>Что не так?</span>
       <div>{(Object.keys(REASON_LABEL) as FeedbackReason[]).map(r => <button key={r} className={reason === r ? 'selected negative-select' : ''} onClick={() => setReason(r)}>{REASON_LABEL[r]}</button>)}</div>
-      <textarea id="feedback-comment" maxLength={1000} value={comment} onChange={e => setComment(e.target.value)} placeholder="Комментарий, необязательно" rows={2} />
+      <textarea id="feedback-comment" name="feedback-comment" autoComplete="off" maxLength={1000} value={comment} onChange={e => setComment(e.target.value)} placeholder="Комментарий, необязательно" rows={2} />
       <button className="send" disabled={!reason} onClick={() => send('down', reason!)}>Отправить</button>
     </div>}
     {err && <ErrorBanner error={err} />}
