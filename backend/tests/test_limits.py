@@ -80,3 +80,21 @@ def test_login_failures_limited_per_ip(fake_ml, tmp_path):
         for user in ("alice", "bob", "nobody"):
             assert_error(client.post("/api/auth/login", json={"login": user, "password": "wrong"}), 401, "unauthorized")
         assert_error(client.post("/api/auth/login", json={"login": "grp", "password": "pw-grp"}), 429, "rate_limited")
+
+
+def test_reopening_ready_card_is_free(fake_ml, tmp_path):
+    with make_client(ml_transport(), tmp_path, limit_insights_per_10m=1) as client:
+        alice = login(client, "alice")
+        assert client.get(INSIGHT, headers=alice).status_code == 200
+        for _ in range(5):  # карточка уже отдавалась: ML берёт её из кэша, лимит не тратится
+            assert client.get(INSIGHT, headers=alice).status_code == 200
+        # Новая пара по-прежнему считается.
+        assert_error(client.get(f"/api/companies/{COMPANY}/insights/n_fx", headers=alice), 429, "rate_limited")
+
+
+def test_ready_card_for_other_role_is_not_free(fake_ml, tmp_path):
+    with make_client(ml_transport(), tmp_path, limit_insights_per_10m=1) as client:
+        exp = login(client, "exp")
+        assert client.get(f"{INSIGHT}?role=cfo", headers=exp).status_code == 200
+        assert client.get(f"{INSIGHT}?role=cfo", headers=exp).status_code == 200
+        assert_error(client.get(f"{INSIGHT}?role=owner", headers=exp), 429, "rate_limited")

@@ -5,12 +5,13 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-from ml import api, feedback
+from ml import api, feedback, livedata
 from ml.agent.orchestrator import InsightError
 from ml.agent.trace import load_trace
 from ml.errors import NotApplicable, NotFound
@@ -18,7 +19,17 @@ from ml.roles import Role
 from ml.llm.client import BudgetExceeded, LLMError, SpendLedger
 from ml.schemas import CompanyProfile, Feed, FollowupAnswer, InsightCard, ScenarioSet
 
+log = logging.getLogger("ml.server")
+
 app = FastAPI(title="alpha-hack ML", version="0.1")
+
+
+@app.middleware("http")
+async def fresh_data(request, call_next):
+    """Боевой конвейер (ml/live.py) обновляет материалы на ходу: перед запросом подхватываем изменившиеся файлы."""
+    if changed := livedata.refresh():
+        log.info("данные обновлены: %s", ", ".join(changed))
+    return await call_next(request)
 
 
 def _guard(fn, *args, **kwargs):
@@ -96,6 +107,24 @@ def trace(trace_id: str):
     if t is None:
         raise HTTPException(404, "trace not found")
     return t
+
+
+@app.get("/items/daily")
+def items_daily(days: int = 14) -> dict[str, int]:
+    """Число материалов по дате публикации за `days` дней до «сейчас» (ML_AS_OF), включая дни без материалов:
+    мониторинг поступления новостей, ноль за день означает остановку сборщика."""
+    from datetime import timedelta
+
+    from ml.config import settings
+    from ml.ingest.store import load_items
+
+    days = max(1, min(days, 60))
+    end = settings.as_of
+    out = {(end - timedelta(days=i)).isoformat(): 0 for i in range(days - 1, -1, -1)}
+    for item in load_items().values():
+        if (d := item.source.published_at) and d.isoformat() in out:
+            out[d.isoformat()] += 1
+    return out
 
 
 @app.get("/health")

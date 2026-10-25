@@ -1,0 +1,20 @@
+# Публичный стенд на общем сервере (semenovm.ru/alpha26). Поверх базового и боевого файлов:
+#   docker compose -f docker-compose.yml -f docker-compose.live.yml -f docker-compose.prod.yml up -d --build
+# Наружу ничего не торчит: бэкенд слушает только 127.0.0.1:18000, статику фронта и проксирование /alpha26/api отдаёт хостовый nginx.
+services:
+  ml:
+    ports: !override
+      - "127.0.0.1:18001:8001"
+
+  backend:
+    ports: !override
+      - "127.0.0.1:18000:8000"
+    # За nginx настоящий адрес клиента приходит в X-Forwarded-For: от него зависят лимиты неудачных входов
+    command: ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips=*"]
+    environment:
+      # Сид с закрытым паролем admin лежит только на сервере (var_live/seed_prod.json)
+      - BACKEND_SEED_PATH=/app/var/seed_prod.json
+
+  # Фронт собран заранее (VITE_BASE=/alpha26/) и лежит в /var/www/alpha26: контейнер nginx не нужен
+  frontend:
+    profiles: ["static"]

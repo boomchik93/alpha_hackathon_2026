@@ -17,6 +17,14 @@ def mock_llm(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def no_consistency(monkeypatch):
+    """Мок сверки противоречий (регулярные выражения в ml/llm/mock.py) находит «расхождение» и в новости о сохранении
+    ставки, что добавляет повтор интерпретации; тесты счётчиков повторов написаны без сверки. Путь со сверкой проверяется
+    явно (test_consistency.py, ML_CONSISTENCY=1)."""
+    monkeypatch.setenv("ML_CONSISTENCY", "0")
+
+
+@pytest.fixture(autouse=True)
 def heuristic_feed():
     """Тесты ленты проверяют эвристику и не зависят от обученной модели пары (ml/ranking/pair_model.json);
     путь с моделью проверяется явно (test_pair_model.py)."""

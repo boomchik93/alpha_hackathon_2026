@@ -1,4 +1,4 @@
-"""Расширенный eval-набор компаний (IMPROVEMENTS.md, E1): стратифицированная выборка и dev/test по отраслям.
+"""Расширенный eval-набор компаний: стратифицированная выборка и dev/test по отраслям.
 
     python -m ml.eval.sample            # пишет ml/eval/companies_v2.json
     python -m ml.eval.sample --pairs    # после ml.eval.label_llm: ml/eval/card_pairs_v2.json

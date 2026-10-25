@@ -7,7 +7,7 @@ LLM в ранжировании не используется: дорогие в
 Эвристика объясняет, почему материал важен (причины идут в ленту и в промпт),
 BM25 по тексту профиля ловит связи, которых нет в карте тем.
 
-Два правила по масштабу события (scope из ml/ingest/importance.py; разбор ошибок на реальных новостях в STATUS_HANDOFF.md):
+Два правила по масштабу события (scope из ml/ingest/importance.py; разбор ошибок на реальных новостях в ml/eval/analysis.md):
 - отраслевая новость или событие компании (scope sector/company) без связи с отраслью компании (ОКВЭД, смежность,
   отраслевая тема) не получает причин по темам: широкая тема от разбора («gdp_industry») иначе уводит её всем.
   Аналитика банка под правило не попадает: это обзоры рынков для клиентов банка, а не отраслевые события;
@@ -26,7 +26,7 @@ BM25 по тексту профиля ловит связи, которых не
 Аналитика банка старше STALE_AFTER_DAYS в ленту не попадает: она остаётся
 в поиске для RAG, но с датой и пометкой «устарело».
 
-Два уровня ленты (FEED_TIERS_PLAN.md): основная лента `main` (личный скор от MAIN_SCORE или событие в отрасли компании) и
+Два уровня ленты: основная лента `main` (личный скор от MAIN_SCORE или событие в отрасли компании) и
 блок «может быть интересно» `maybe` (личный скор от MIN_SCORE до MAIN_SCORE); ниже MIN_SCORE материал отсеивается.
 Порядок: сначала main, затем maybe, внутри уровня по порядку ленты.
 """
@@ -36,7 +36,7 @@ from __future__ import annotations
 import json
 import math
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
 
@@ -44,7 +44,7 @@ from rank_bm25 import BM25Okapi
 
 from ml.config import settings
 from ml.ingest.analytics import STALE_AFTER_DAYS, is_stale
-from ml.ingest.dedup import representatives
+from ml.ingest.dedup import event_groups, representatives
 from ml.ranking import rerank
 from ml.ranking.bm25 import load_background
 from ml.profile.build_profile import normalize_okved
@@ -57,7 +57,7 @@ from ml.topics import TOPICS, okved_matches, topic_reasons
 # 0,7 и порог 0,3: на реальных новостях (ml/eval/real_news.jsonl) меньше ложных срабатываний на dev и отложенной части.
 ALPHA = 0.7
 MIN_SCORE = 0.3
-# Порог основной ленты по личному скору (FEED_TIERS_PLAN.md; объявлен до проверки на real2, ml/eval/PROTOCOL.md).
+# Порог основной ленты по личному скору.
 # Материалы между MIN_SCORE и MAIN_SCORE идут в блок «может быть интересно». Поднимать MIN_SCORE вместо этого нельзя:
 # в режиме с моделью личный скор нормируется на MIN_SCORE (blend_scores).
 MAIN_SCORE = float(os.getenv("ML_FEED_MAIN_SCORE", "0.40"))
@@ -79,7 +79,7 @@ ADJACENCY_WEIGHT = 0.35
 # ml/eval/analysis.md, «Реальные новости»: на реальных новостях nDCG@5 растёт до BETA 0,5-0,65, на ручной разметке v2
 # выше 0,35 падает; 0,35 не хуже прежнего ни на одном срезе.
 BETA = 0.35
-# Откуда причины «материал -> признак профиля» (GAIN_PLAN.md, «новость -> отрасль»): "topics" ручная карта ml.topics.TOPICS,
+# Откуда причины «материал -> признак профиля»: "topics" ручная карта ml.topics.TOPICS,
 # "channels" каналы влияния, которые модель оценивает по тексту материала, "both" обе.
 SIGNALS = os.getenv("ML_RANK_SIGNALS", "topics")
 # Материал вне экономики по оценке модели (scope="none"): личный скор умножается на этот множитель. 1: не влияет, 0: исключить.
@@ -98,6 +98,12 @@ IMPORTANT_REASON = "событие крупного масштаба (оценк
 ECONOMY_REASON = "событие касается всей экономики (оценка модели)"
 MODEL_PATH = Path(__file__).with_name("pair_model.json")
 USE_MODEL = os.getenv("ML_RANK_MODEL", "1") != "0"
+# Выдача ленты: материалы одного события (ml.ingest.dedup.event_groups) идут одной записью с перечнем свёрнутых (related),
+# устаревшая аналитика банка не стоит выше новости, которая её сменила. Скоры и отсев это не меняет. 0 — как раньше.
+FEED_EVENTS = os.getenv("ML_FEED_EVENTS", "1") != "0"
+# Аналитика банка устарела относительно новости своей темы, если старше её больше чем на месяц (заседания ЦБ идут раз в
+# 6-7 недель). На v2 документы и новости одного периода расходятся на 1-12 дней, и там документ по эталону часто нужнее.
+BANK_SUPERSEDED_DAYS = 30
 
 
 @dataclass
@@ -109,6 +115,7 @@ class Scored:
     bm25: float = 0.0
     personal: float = 0.0  # личный скор компании: по нему отсев (MIN_SCORE) и уровень ленты (MAIN_SCORE)
     tier: str = ""  # "main" | "maybe" (заполняет rank), "" у материала, не прошедшего отсев
+    related: list[str] = field(default_factory=list)  # item_id материалов того же события, свёрнутых в эту запись (rank)
 
 
 def profile_query(p: CompanyProfile) -> str:
@@ -368,7 +375,44 @@ def rank(p: CompanyProfile, items: list[ParsedItem], limit: int = MAIN_LIMIT, ma
     for s in scored:
         s.tier = tier_of(p, s) or ""
         {"main": main, "maybe": maybe}.get(s.tier, []).append(s)
-    return main[:limit] + maybe[:maybe_limit], dropped + len(scored) - len(main) - len(maybe)
+    dropped += len(scored) - len(main) - len(maybe)  # свёрнутые в запись события отсеянными не считаются
+    if FEED_EVENTS:
+        main, maybe = collapse_events(main, maybe)
+        main, maybe = bank_after_newer_news(main), bank_after_newer_news(maybe)
+    return main[:limit] + maybe[:maybe_limit], dropped
+
+
+def collapse_events(main: list[Scored], maybe: list[Scored]) -> tuple[list[Scored], list[Scored]]:
+    """Одна запись на событие: остаётся материал с лучшим местом (основная лента раньше блока «может быть»),
+    остальные материалы события уходят в его `related`. Свёрнутые не считаются отсеянными."""
+    group = event_groups([s.item for s in main + maybe])
+    head: dict[str, Scored] = {}
+    out: tuple[list[Scored], list[Scored]] = ([], [])
+    for part, src in zip(out, (main, maybe)):
+        for s in src:
+            key = group.get(s.item.item_id, s.item.item_id)
+            if key in head:
+                head[key].related.append(s.item.item_id)
+                continue
+            s.related = []
+            head[key] = s
+            part.append(s)
+    return out
+
+
+def bank_after_newer_news(part: list[Scored]) -> list[Scored]:
+    """Аналитика банка не выше новостей с той же главной темой, которые свежее её больше чем на BANK_SUPERSEDED_DAYS:
+    сентябрьский обзор решения по ставке идёт после октябрьского решения. Документ ставится сразу после последней такой
+    новости этого уровня ленты, остальной порядок прежний; между уровнями материалы не переходят."""
+    out = list(part)
+    for doc in [s for s in part if s.item.source.kind == SourceKind.bank_analytics and s.item.topics]:
+        i = out.index(doc)
+        newer = [k for k, s in enumerate(out) if s.item.source.kind != SourceKind.bank_analytics
+                 and s.item.topics[:1] == doc.item.topics[:1]
+                 and (s.item.source.published_at - doc.item.source.published_at).days > BANK_SUPERSEDED_DAYS]
+        if newer and newer[-1] > i:
+            out.insert(newer[-1], out.pop(i))
+    return out
 
 
 def feed(p: CompanyProfile, items: list[ParsedItem], limit: int = MAIN_LIMIT, maybe_limit: int = MAYBE_LIMIT, tier: str = "all") -> Feed:
@@ -380,7 +424,7 @@ def feed(p: CompanyProfile, items: list[ParsedItem], limit: int = MAIN_LIMIT, ma
             source_kind=s.item.source.kind, score=s.score, tier=s.tier,
             reasons=([WEAK_REASON] if s.tier == "maybe" else []) + [r[1] for r in s.reasons][:3]
             + ([IMPORTANT_REASON] if s.item.importance >= IMPORTANT_AT else []),
-            topics=s.item.topics, stale=is_stale(s.item.source.published_at),
+            topics=s.item.topics, stale=is_stale(s.item.source.published_at), related=s.related,
         )
         for s in kept
     ]

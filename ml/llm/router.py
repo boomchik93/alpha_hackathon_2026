@@ -48,7 +48,7 @@ ROUTES: dict[str, Route] = {
     "scenario_analysis": Route("glm", 0.2, 2000, fallback="qwen"),
     # Судья eval: другая модель, чем интерпретатор (GLM), чтобы не оценивать самого себя.
     "eval_judge": Route("deepseek", 0.0, 1200),
-    # Второй судья (IMPROVEMENTS.md, E4), включается run_eval --second-judge. Kimi в ~15 раз дороже DeepSeek;
+    # Второй судья, включается run_eval --second-judge. Kimi в ~15 раз дороже DeepSeek;
     # Qwen почти не различает карточки (factual=2 в 99%), поэтому по умолчанию выключен.
     "eval_judge_2": Route("qwen", 0.0, 1200),
     # Разметка эталона релевантности (ml/eval/label_llm.py): две модели разных семейств, обе не интерпретатор.

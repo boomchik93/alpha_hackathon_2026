@@ -56,6 +56,7 @@ def _limiter(request: Request) -> RateLimiter:
 
 LIMIT_WINDOW_S = 600   # окно лимитов на карточки и вопросы
 LOGIN_WINDOW_S = 300   # окно лимита неудачных входов
+USAGE_DAYS = 7         # окно вовлечённости на экране мониторинга
 
 
 # --- служебное и вход ------------------------------------------------------------
@@ -255,7 +256,8 @@ async def insight(request: Request, user: CurrentUser, company_id: Id, item_id: 
     db.audit("insight", user.id, company_id=company_id, item_id=item_id, detail=card_role)
     jobs = _jobs(request)
     key = ("insight", company_id, item_id, card_role)
-    if jobs.active(key) is None:  # присоединение к идущей генерации бесплатно
+    # Лимит только на новую генерацию: присоединение к идущей и повторное открытие готовой карточки бесплатны.
+    if jobs.active(key) is None and not db.has_card(company_id, item_id, card_role):
         _limiter(request).hit(("insight", user.id), settings.limit_insights_per_10m, LIMIT_WINDOW_S,
                               "слишком много новых карточек за 10 минут, подождите")
     job = jobs.submit(key, work)
@@ -300,7 +302,7 @@ async def scenarios(request: Request, user: CurrentUser, company_id: Id, item_id
     db.audit("scenarios", user.id, company_id=company_id, item_id=item_id, detail=card_role)
     jobs = _jobs(request)
     key = ("scenarios", company_id, item_id, card_role)
-    if jobs.active(key) is None:  # присоединение к идущей генерации бесплатно
+    if jobs.active(key) is None and not db.has_scenarios(company_id, item_id, card_role):  # как у карточки
         _limiter(request).hit(("scenarios", user.id), settings.limit_scenarios_per_10m, LIMIT_WINDOW_S,
                               "слишком много новых сценариев за 10 минут, подождите")
     job = jobs.submit(key, work)
@@ -394,6 +396,17 @@ async def feedback_summary(request: Request, user: PrivilegedUser) -> dict[str, 
         out["ml"] = await _ml(request).get("/feedback/summary")
     except ApiError:
         out["ml"] = None
+    # Вовлечённость: что пользователи делают после открытия карточки (вопрос, первоисточник, трасса, оценка).
+    actions = _db(request).audit_counts(USAGE_DAYS)
+    opened = actions.get("insight", {}).get("count", 0)
+    after = sum(actions.get(a, {}).get("count", 0) for a in ("followup", "source", "trace", "feedback"))
+    out["usage"] = {"days": USAGE_DAYS, "actions": actions,
+                    "actions_per_card": round(after / opened, 2) if opened else None}
+    # Поступление материалов по дням: остановка сборщика новостей видна в тот же день.
+    try:
+        out["items_by_day"] = await _ml(request).get("/items/daily")
+    except ApiError:
+        out["items_by_day"] = None
     return out
 
 

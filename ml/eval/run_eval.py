@@ -67,7 +67,7 @@ DISPUTED_VARIANTS = {"A": "оценка модели A", "B": "оценка мо
 
 
 def load_gold_v2_disputed(variant: str):
-    """Эталон v2 со спорными парами (REVIEW_PLAN.md, T2): согласованные и ручные как в load_gold_v2, спорным
+    """Эталон v2 со спорными парами: согласованные и ручные как в load_gold_v2, спорным
     ставится оценка модели A, модели B, минимум или максимум из двух (поля grade_a, grade_b)."""
     pick = {"A": lambda a, b: a, "B": lambda a, b: b, "min": min, "max": max}[variant]
     rows = [json.loads(l) for l in (EVAL_DIR / "labels.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
@@ -105,7 +105,7 @@ def eval_disputed(companies: list[dict], items: list) -> dict[str, dict[str, dic
 
 
 # ---------------------------------------------------------------------------
-# Переранжирование моделью (REVIEW_PLAN.md, T13): оценка Gemma для топ-N и материалов у порога, смесь с личным скором.
+# Переранжирование моделью: оценка Gemma для топ-N и материалов у порога, смесь с личным скором.
 # Оценка модели одна на пару и кэшируется, поэтому веса смеси сравниваются на одних и тех же вызовах.
 # ---------------------------------------------------------------------------
 
@@ -320,7 +320,7 @@ def eval_ranking(companies: list[dict], items: list, gold_fn=None) -> dict:
 
 
 # ---------------------------------------------------------------------------
-# Бейзлайны ленты и метрика персонализации (REVIEW_PLAN.md, T1). Порядок по общей
+# Бейзлайны ленты и метрика персонализации. Порядок по общей
 # важности материала обходит ленту по nDCG@5, поэтому персонализацию показывает AUC
 # «кому показать материал», а не nDCG@5.
 # ---------------------------------------------------------------------------
@@ -411,7 +411,7 @@ def eval_baselines(companies: list[dict], items: list, gold_fn=None) -> dict[str
     # сам материал, а не разметку других компаний; в отличие от популярности так можно работать в бою.
     imp = {i.item_id: i.importance for i in pool}
     imp_order = sorted(pool_ids, key=lambda i: -imp[i])
-    # Уровни ленты (FEED_TIERS_PLAN.md): те же пары, личный скор и порядок системы.
+    # Уровни ленты: те же пары, личный скор и порядок системы.
     from ml.ranking import pair_model as pm
 
     by_id = {i.item_id: i for i in pool}
@@ -485,7 +485,7 @@ def baselines_lines(b: dict, title: str) -> list[str]:
 
 
 # ---------------------------------------------------------------------------
-# Честная оценка ранжирования (IMPROVEMENTS.md, E1): параметры подбираются без
+# Честная оценка ранжирования: параметры подбираются без
 # оцениваемой компании, интервалы bootstrap по компаниям.
 # ---------------------------------------------------------------------------
 
@@ -496,7 +496,7 @@ PARAM_GRID = {
     "FEATURE_WEIGHT": (0.35, 0.45),
     "OFF_SECTOR_DAMP": (1.0, 0.5),
     "ADJACENCY_WEIGHT": (0.0, 0.25, 0.35, 0.45, 0.6),
-    "BETA": (0.0, 0.2, 0.35, 0.5),  # вес важности материала в порядке ленты (REVIEW_PLAN.md, T11)
+    "BETA": (0.0, 0.2, 0.35, 0.5),  # вес важности материала в порядке ленты
 }
 BOOTSTRAP_N = 2000
 
@@ -620,7 +620,7 @@ class Budget:
         return self.stopped
 
 
-# Судьи eval (IMPROVEMENTS.md, E4): две модели других семейств, чем интерпретатор (GLM).
+# Судьи eval: две модели других семейств, чем интерпретатор (GLM).
 JUDGES = ("eval_judge", "eval_judge_2")
 INJECTED_ITEM = "n_2026_09_06_noisy"  # синтетическая новость с внедрённой инструкцией (ml/fixtures/news.jsonl)
 
@@ -711,7 +711,7 @@ def judge_card(client, card, profile, item, hits: dict[str, dict], task: str = "
     from ml.ranking.ranker import score_item
 
     used = card.referenced_source_ids()
-    # Судья видит тот же контекст, что и модель (IMPROVEMENTS.md, E4 п.2): название документа и причины ранжирования.
+    # Судья видит тот же контекст, что и модель: название документа и причины ранжирования.
     chunks = [{"id": h["id"], "title": h.get("title"), "date": h["published_at"], "text": h["text"]}
               for h in hits.values() if h["id"] in used]
     reasons = [r[1] for r in score_item(profile, item).reasons] or ["явных связей с профилем не найдено"]
@@ -798,7 +798,7 @@ def run_pair(c: dict, item, client, budget: Budget, do_judge: bool, gold_fn=None
 
 
 def unsupported_kinds(unsupported: list[str], card) -> dict[str, int]:
-    """Замечания судьи по месту в карточке (STATUS_HANDOFF.md, п. 7): «как факт» — в тексте, поданном со ссылкой на источник
+    """Замечания судьи по месту в карточке: «как факт» — в тексте, поданном со ссылкой на источник
     (что случилось, почему важно, мнение банка, последствия и действия с evidence); «гипотеза» — в выводе модели
     (ai_inference и пункты с is_model_inference). Только «как факт» означает выдумку, поданную как факт."""
     from ml.eval.judge_types import segs, where

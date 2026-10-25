@@ -1,8 +1,9 @@
 """Источник новостей: фикстуры (детерминированная демо и eval) или RSS с кэшем на диск.
 
-Режим задаётся `NEWS_SOURCE=fixtures|rss` в `.env`. По умолчанию фикстуры.
+Режим задаётся `NEWS_SOURCE=fixtures|rss|collector` в `.env`. По умолчанию фикстуры.
+`collector`: записи сборщика `backend/news_collector` (`var/news_collector/raw_items.jsonl`, путь меняется `NEWS_COLLECTOR_FILE`).
 Список RSS-лент `NEWS_RSS_URLS` через запятую; разрешённость источников
-нужно подтвердить у организаторов (PLAN.md, раздел 7).
+нужно подтвердить у организаторов.
 """
 
 from __future__ import annotations
@@ -14,6 +15,7 @@ import re
 import xml.etree.ElementTree as ET
 from dataclasses import asdict, dataclass
 from datetime import date
+from pathlib import Path
 from email.utils import parsedate_to_datetime
 
 import httpx
@@ -121,7 +123,17 @@ def with_full_text(item: RawItem, min_chars: int = 300) -> RawItem:
     return RawItem(**{**item.__dict__, "text": full}) if len(full) > len(item.text) else item
 
 
+def load_collector() -> list[RawItem]:
+    """Записи сборщика новостей. Нет файла или битая строка: файл не годится целиком, молча пустой список не отдаём."""
+    p = Path(os.getenv("NEWS_COLLECTOR_FILE") or settings.paths.var / "news_collector" / "raw_items.jsonl")
+    if not p.exists():
+        raise FileNotFoundError(f"нет {p}: сначала `make collect`")
+    return [RawItem(**json.loads(l)) for l in p.read_text(encoding="utf-8").splitlines() if l.strip()]
+
+
 def fetch_news() -> list[RawItem]:
+    if os.getenv("NEWS_SOURCE", "fixtures") == "collector":
+        return load_collector()
     if os.getenv("NEWS_SOURCE", "fixtures") == "rss":
         urls = [u.strip() for u in os.getenv("NEWS_RSS_URLS", "").split(",") if u.strip()]
         items = [i for u in urls for i in fetch_rss(u)]

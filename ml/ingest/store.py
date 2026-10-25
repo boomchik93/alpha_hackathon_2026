@@ -8,38 +8,49 @@
 from __future__ import annotations
 
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from functools import lru_cache
 
 from ml.config import settings
 from ml.errors import NotFound
+from ml.fileio import write_atomic
 from ml.ingest.analytics import doc_items
 from ml.ingest.dedup import assign_clusters
 from ml.ingest.news_fetch import fetch_news
 from ml.ingest.importance import with_importance
 from ml.ingest.parse_item import parse_item
-from ml.llm.client import get_client
+from ml.llm.client import LLMError, get_client
 from ml.schemas import ParsedItem
 
 ITEMS_PATH = settings.paths.var / "items.jsonl"
 
 
-def build_items(importance: bool = False) -> list[ParsedItem]:
+def build_items(importance: bool = False, skip_failed: bool = False, workers: int = 1) -> list[ParsedItem]:
     """importance=True: важность каждого материала оценивает модель (платно, вызов Gemma на материал, кэшируется).
-    Иначе важность берётся из прежнего `var/items.jsonl`, новые материалы получают нейтральные 0,5: пересборка бесплатна."""
+    Иначе важность берётся из прежнего `var/items.jsonl`, новые материалы получают нейтральные 0,5: пересборка бесплатна.
+    skip_failed=True (боевой конвейер): новость, которую модель не разобрала, пропускается, а не роняет всю сборку;
+    превышение бюджета (BudgetExceeded, не LLMError) пропуском не считается и останавливает сборку.
+    workers: сколько новостей разбирать параллельно (первый проход по свежему потоку — сотни вызовов)."""
     prev = {i.item_id: i.importance for i in load_items().values()}
 
     def keep(it: ParsedItem) -> ParsedItem:
         return it.model_copy(update={"importance": prev.get(it.item_id, it.importance)})
 
-    if importance:
-        news = [with_importance(parse_item(r), r.text) for r in fetch_news()]
-        docs = doc_items(get_client())
-    else:
-        news = [keep(parse_item(r)) for r in fetch_news()]
-        docs = [keep(d) for d in doc_items()]
+    def one(r) -> ParsedItem | None:
+        try:
+            it = parse_item(r)
+        except LLMError as e:
+            if not skip_failed:
+                raise
+            print(f"пропущена {r.id}: {type(e).__name__}: {str(e)[:150]}", file=sys.stderr)
+            return None
+        return with_importance(it, r.text) if importance else keep(it)
+
+    with ThreadPoolExecutor(max_workers=workers) as ex:
+        news = [it for it in ex.map(one, fetch_news()) if it is not None]
+    docs = doc_items(get_client()) if importance else [keep(d) for d in doc_items()]
     items = [*docs, *assign_clusters(news)]
-    ITEMS_PATH.parent.mkdir(parents=True, exist_ok=True)
-    ITEMS_PATH.write_text("".join(i.model_dump_json() + "\n" for i in items), encoding="utf-8")
+    write_atomic(ITEMS_PATH, "".join(i.model_dump_json() + "\n" for i in items))
     load_items.cache_clear()
     return items
 

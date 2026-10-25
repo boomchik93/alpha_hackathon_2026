@@ -19,6 +19,7 @@ from datetime import date
 from functools import lru_cache
 
 from ml.config import settings
+from ml.fileio import write_atomic
 from ml.schemas import ItemSource, ParsedItem, SourceKind
 from ml.topics import detect_topics
 
@@ -28,20 +29,29 @@ class DocMeta:
     doc_id: str
     title: str
     published_at: date
+    # Темы, по которым документ является основной позицией банка (ml/topics.py). Разметка тем по фрагментам шумная:
+    # обзор золота упоминает ставки ФРС и получает тему key_rate, поэтому поиск добирает фрагмент профильного документа.
+    core_topics: tuple[str, ...] = ()
 
 
-# Метаданные по PLAN.md, раздел 1.2. Ключ: имя PDF без расширения.
+# Метаданные источников. Ключ: имя PDF без расширения.
 DOCS: dict[str, DocMeta] = {
-    "ALFA-Macro_Insights-Policy_Rate_11Sep": DocMeta("bank_rate_2026_09_11", "Ключевая ставка ЦБ РФ: ставка без изменения на 14,0%, риторика стала жестче", date(2026, 9, 11)),
-    "Бонд_Бриф_14092026": DocMeta("bank_bond_brief_2026_09_14", "Бонд Бриф: ОФЗ после решения по ставке", date(2026, 9, 14)),
+    "ALFA-Macro_Insights-Policy_Rate_11Sep": DocMeta("bank_rate_2026_09_11", "Ключевая ставка ЦБ РФ: ставка без изменения на 14,0%, риторика стала жестче", date(2026, 9, 11), ("key_rate",)),
+    "Бонд_Бриф_14092026": DocMeta("bank_bond_brief_2026_09_14", "Бонд Бриф: ОФЗ после решения по ставке", date(2026, 9, 14), ("bonds",)),
     "ALFA-7M26": DocMeta("bank_macro_7m26", "Макростатистика 7M26: рынок труда, розница, автомобили", date(2026, 9, 7)),
-    "Inflation_tracker_02": DocMeta("bank_inflation_2026_09_02", "Инфляция: 25-31 августа", date(2026, 9, 2)),
+    "Inflation_tracker_02": DocMeta("bank_inflation_2026_09_02", "Инфляция: 25-31 августа", date(2026, 9, 2), ("inflation",)),
     "Gold_digest_August26": DocMeta("bank_gold_2026_08", "Рынок золота: август 2026", date(2026, 8, 31)),
-    "ALFA-consumption": DocMeta("bank_consumption_2026_08_05", "Потребление на пике", date(2026, 8, 5)),
+    "ALFA-consumption": DocMeta("bank_consumption_2026_08_05", "Потребление на пике", date(2026, 8, 5), ("consumption",)),
     "ALFA-macro_stat1H26": DocMeta("bank_macro_1h26", "Макростатистика 1П26: ВВП", date(2026, 7, 31)),
     "FI_Strategy_3Q26_22072026": DocMeta("bank_fi_strategy_3q26", "Тактический взгляд на 3 кв. 2026: время собирать камни", date(2026, 7, 22)),
     "ALFA_Russian_Steels_1К21PreviewUpdate_15Apr2021": DocMeta("bank_steel_1q21", "Российские сталевары: превью 1К21", date(2021, 4, 15)),
 }
+
+
+def core_docs(topic: str) -> set[str]:
+    """doc_id документов банка, которые являются основной позицией по теме."""
+    return {m.doc_id for m in DOCS.values() if topic in m.core_topics}
+
 
 # Типовые ошибки tesseract на этих документах.
 OCR_FIXES = [
@@ -292,10 +302,7 @@ def build_chunks() -> list[Chunk]:
 def main() -> None:
     chunks = build_chunks()
     out = settings.paths.chunks
-    out.parent.mkdir(parents=True, exist_ok=True)
-    with out.open("w", encoding="utf-8") as f:
-        for c in chunks:
-            f.write(json.dumps(asdict(c), ensure_ascii=False) + "\n")
+    write_atomic(out, "".join(json.dumps(asdict(c), ensure_ascii=False) + "\n" for c in chunks))
     print(f"chunks={len(chunks)} -> {out}", file=sys.stderr)
 
 

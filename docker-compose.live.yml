@@ -1,0 +1,50 @@
+# Боевой режим: настоящие модели, живые новости, карточки для тестовых аккаунтов без остановки.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.live.yml up -d --build
+#   docker compose -f docker-compose.yml -f docker-compose.live.yml logs -f pipeline
+#
+# Данные боевого режима лежат в var_live/, чтобы не перезаписать var/items.jsonl, на котором считаются метрики ленты.
+# Общие с разработкой: кэш ответов моделей (var/llm_cache, чтобы не платить дважды) и журнал расходов (var/spend.jsonl,
+# дневной лимит один на всех). Перед первым запуском: make live-init (или сразу make live-up).
+services:
+  ml:
+    environment:
+      - LLM_MOCK=0
+      - ML_AS_OF=today
+    volumes:
+      - ./data:/app/data:ro
+      - ./var_live:/app/var
+      - ./var/llm_cache:/app/var/llm_cache
+      - ./var/spend.jsonl:/app/var/spend.jsonl
+
+  backend:
+    volumes:
+      - ./var_live:/app/var
+      - ./data/analytics:/app/data/analytics:ro
+
+  # Конвейер: сборщик новостей -> разбор (Gemma) -> лента -> карточки основной ленты аккаунтов из backend/seed_users.json.
+  pipeline:
+    build:
+      context: .
+      args:
+        WITH_COLLECTOR: "1"
+    command: ["python", "-m", "ml.live", "loop"]
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - LLM_MOCK=0
+      - ML_AS_OF=today
+      - NEWS_SOURCE=collector
+      - LIVE_INTERVAL_S=${LIVE_INTERVAL_S:-900}
+      - LIVE_CARDS_BUDGET_RUB=${LIVE_CARDS_BUDGET_RUB:-100}
+      - LIVE_COLLECT_DAYS=${LIVE_COLLECT_DAYS:-3}
+    volumes:
+      - ./data:/app/data:ro
+      - ./var_live:/app/var
+      - ./var/llm_cache:/app/var/llm_cache
+      - ./var/spend.jsonl:/app/var/spend.jsonl
+      - ./backend:/app/backend:ro    # код сборщика и seed_users.json
+    healthcheck:
+      disable: true
+    restart: unless-stopped

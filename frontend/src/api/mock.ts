@@ -276,6 +276,7 @@ export const mockApi: Api = {
         { tool: 'get_company_profile', why: 'Взять отрасль, размер и продукты банка' },
         { tool: 'search_bank_analytics', why: 'Найти позицию аналитиков банка по теме' },
         { tool: 'verify_card', why: 'Сверить цифры и цитаты с источниками' },
+        { tool: null, why: 'Интерпретация, затем самопроверка' },
       ],
       tool_calls: [{ tool: 'get_item', ms: 12 }, { tool: 'get_company_profile', ms: 8 }, { tool: 'search_bank_analytics', ms: hasBank ? 340 : 290 }, { tool: 'llm.generate', ms: 4800 }, { tool: 'verify_card', ms: 610 }],
       replans: card.meta.retries ? [{ trigger: 'verifier', why: 'Цитата банка не совпала с источником, переписали блок' }] : [],
@@ -300,6 +301,21 @@ export const mockApi: Api = {
       user: grouped(votes.filter(v => v.access === 'user')),
       expert: grouped(votes.filter(v => v.access !== 'user')),
       ml: { 'все': stats(votes), 'insight-v3': stats(votes.slice(4)), 'insight-v2': stats(votes.slice(0, 8)) },
+      usage: (() => {
+        const actions: Record<string, { count: number; users: number }> = {}
+        for (const a of audit) {
+          const s = (actions[a.action] ??= { count: 0, users: 0 })
+          s.count++
+        }
+        for (const [k, s] of Object.entries(actions)) s.users = new Set(audit.filter(a => a.action === k).map(a => a.user_id)).size
+        const opened = actions.insight?.count ?? 0
+        const after = ['followup', 'source', 'trace', 'feedback'].reduce((n, k) => n + (actions[k]?.count ?? 0), 0)
+        return { days: 7, actions, actions_per_card: opened ? Math.round((after / opened) * 100) / 100 : null }
+      })(),
+      items_by_day: Object.fromEntries(Array.from({ length: 14 }, (_, i) => {
+        const d = new Date(Date.parse('2026-09-15') - (13 - i) * 864e5).toISOString().slice(0, 10)
+        return [d, [3, 5, 4, 0, 6, 7, 5, 4, 8, 6, 5, 9, 7, 4][i]]
+      })),
     }
   },
   async audit(limit = 50) {

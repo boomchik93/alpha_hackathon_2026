@@ -144,7 +144,7 @@ export interface CardTrace {
   kind?: string
   duration_s: number | null
   retries: number
-  plan: { tool: string; why: string }[]
+  plan: { tool: string | null; why: string }[] // null: шаг рассуждения без инструмента
   tool_calls: { tool: string; ms: number | null }[]
   replans: { trigger: string; why: string }[]
   checks: { attempt: number; issues: number }[]
@@ -162,6 +162,9 @@ export interface FeedbackSummary {
   user?: VoteStats & { by_role: Record<string, VoteStats> }
   expert?: VoteStats & { by_role: Record<string, VoteStats> }
   ml: Record<string, VoteStats> | null // по версии промпта, ключ «все» — по всем
+  // Вовлечённость за `days` дней из журнала: действие -> число обращений и разных пользователей
+  usage?: { days: number; actions: Record<string, { count: number; users: number }>; actions_per_card: number | null }
+  items_by_day?: Record<string, number> | null // дата публикации -> число материалов; null, если ML недоступен
 }
 export interface AuditRow { id: number; ts: ISODateTime; user_id: number | null; action: string; company_id: string | null; item_id: string | null; card_id: string | null; trace_id: string | null; detail: string | null }
 

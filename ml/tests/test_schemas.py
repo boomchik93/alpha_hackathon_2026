@@ -264,3 +264,26 @@ def test_topics_match_word_start_only():
         assert "key_rate" in detect_topics(text, 1), text
     assert "key_rate" in detect_topics("Совет директоров снизил ключевую ставку")
     assert detect_topics("Ключевая Ставка") == ["key_rate"]
+
+
+def test_what_happened_of_bank_doc_checked_against_its_chunks(monkeypatch):
+    """Материал — документ аналитики банка: цифры what_happened берутся из его фрагментов, не только из сводки ITEM."""
+    from ml.agent import verifier
+    from ml.schemas import ItemSource, ParsedItem, SourceKind
+
+    monkeypatch.setattr(verifier, "profile_numbers", lambda profile: set())
+    card = InsightCard.model_validate({**REFERENCE, "what_happened": {
+        "text": "Ставка сохранена на 14%, базовая инфляция выросла с 5,7% до 7,6%.", "facts": ["f1"]}})
+    hits = [{"id": "bank_rate:p1:c1", "doc_id": "bank_rate", "text": "Базовая инфляция ускорилась с 5,7% до 7,6% м/м saar."},
+            {"id": "bank_macro:p2:c0", "doc_id": "bank_macro", "text": "Рост ВВП 5,3%, инфляция 9,6%."}]
+
+    def item(kind: SourceKind, doc_id: str | None) -> ParsedItem:
+        return ParsedItem(item_id=doc_id or "n_rate", title="Ключевая ставка ЦБ РФ", summary="Ставка без изменения на 14,0%",
+                          event_type="rate_decision", source=ItemSource(kind=kind, title="x", published_at=date(2026, 9, 11), doc_id=doc_id))
+
+    wh = lambda issues: [i for i in issues if i.startswith("what_happened")]
+    assert wh(verifier.number_issues(card, None, item(SourceKind.bank_analytics, "bank_rate"), hits)) == []
+    # Фрагмент другого документа банка событием не считается.
+    assert wh(verifier.number_issues(card, None, item(SourceKind.bank_analytics, "bank_macro"), hits))
+    # Новость: what_happened только по ITEM, цифры банка в него не переносятся.
+    assert wh(verifier.number_issues(card, None, item(SourceKind.news, None), hits))
