@@ -8,7 +8,7 @@
 |---|---|
 | Работающий прототип | **https://semenovm.ru/alpha26/** (живые модели организаторов, новости собираются каждые 15 минут) |
 | Логины | подсказаны на экране входа; роли и компании — в [`backend/seed_users.json`](backend/seed_users.json) (на стенде у `admin` свой пароль) |
-| Версия на дедлайн | тег `[тег]`, commit `[hash]` |
+| Версия на дедлайн | тег [`v1.0`](https://github.com/boomchik93/alpha_hackathon_2026/releases/tag/v1.0), commit `[hash]` |
 | Презентация | [`product/demo/`](product/demo/) |
 
 ## Как проверить за 10 минут
@@ -44,7 +44,7 @@ flowchart LR
 
 | Компонент | Что делает | Документация |
 |---|---|---|
-| [`ml/`](ml/README.md) | профили компаний, разбор новостей и PDF, лента, агент карточки, проверка цифр и цитат, eval | [`ml/OVERVIEW.md`](ml/OVERVIEW.md) |
+| [`ml/`](ml/README.md) | профили компаний, разбор новостей и PDF, лента, агент карточки, проверка цифр и цитат, eval | [`ml/README.md`](ml/README.md) (устройство, решения и замеры), [`ml/OVERVIEW.md`](ml/OVERVIEW.md) (справочник) |
 | [`backend/`](backend/README.md) | API для фронтенда: вход, права по компаниям, журнал обращений, лимиты, фоновая генерация, PDF первоисточников; сборщик новостей | [`backend/README.md`](backend/README.md) |
 | [`frontend/`](frontend/README.md) | интерфейс в стиле интернет-банка: главная с виджетом, лента, карточка, трасса, мониторинг | [`frontend/README.md`](frontend/README.md) |
 | [`product/`](product/README.md) | видение, требования, метрики, сценарий демо, презентация | [`product/README.md`](product/README.md) |
@@ -62,7 +62,7 @@ flowchart LR
 ```bash
 git clone git@github.com:boomchik93/alpha_hackathon_2026.git
 cd alpha_hackathon_2026
-make demo-data DEMO_DATA_URL=[ссылка на alpha26-demo-data.tar.gz из релиза]
+make demo-data DEMO_DATA_URL=https://github.com/boomchik93/alpha_hackathon_2026/releases/download/v1.0/alpha26-demo-data.tar.gz
 cp .env.example .env                      # ключ к моделям: LLM_API_KEY; без ключа — LLM_MOCK=1
 docker compose up --build                 # интерфейс: http://localhost:8080
 ```
@@ -122,7 +122,7 @@ npm --prefix frontend ci && npm --prefix frontend run dev   # VITE_USE_MOCK=0 �
 
 ## Метрики и мониторинг
 
-Экран «Мониторинг» (эксперт, администратор): здоровье ML, расход против лимита, доля «не полезно» и причины отдельно для пользователей и экспертов, по ролям и версиям промпта, вовлечённость после карточки, поступление новостей по дням, журнал обращений. Метрики, пороги и регламент: [`product/metrics.md`](product/metrics.md). Замеры качества и их честные границы: [`ml/eval/PROTOCOL.md`](ml/eval/PROTOCOL.md), [`ml/eval/analysis.md`](ml/eval/analysis.md).
+Экран «Мониторинг» (эксперт, администратор): здоровье ML, расход против лимита, доля «не полезно» и причины отдельно для пользователей и экспертов, по ролям и версиям промпта, вовлечённость после карточки, поступление новостей по дням, журнал обращений. Метрики, пороги и регламент: [`product/metrics.md`](product/metrics.md). Замеры качества и их честные границы: [`ml/README.md`](ml/README.md#результаты-замеров) (итоговые цифры), [`ml/eval/PROTOCOL.md`](ml/eval/PROTOCOL.md), [`ml/eval/analysis.md`](ml/eval/analysis.md). Почему ML-слой устроен именно так: [`ml/README.md`](ml/README.md#почему-сделано-именно-так).
 
 ## Тесты
 
