@@ -1,22 +1,15 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, ChevronRight, ShieldCheck, Sparkles, TrendingDown, TrendingUp, WalletCards } from 'lucide-react'
+import { ArrowRight, Building2, ChevronRight, ShieldCheck, Sparkles, TrendingDown } from 'lucide-react'
 import { useCompany, useFeed, useSummary } from '../api/hooks'
 import type { FeedEntry } from '../api/types'
 import { useSession } from '../auth/session'
 import { Eyebrow, PageHeader, Pill, ScoreRing, Skel, pct } from '../components/ui'
-import { SOURCE_LABEL, companyLabel, fmtDate, plural } from '../dict/labels'
+import { SOURCE_LABEL, companyLabel, fmtDate, fmtRub, plural } from '../dict/labels'
 
 function greeting() {
   const h = new Date().getHours()
   return h < 5 ? 'Доброй ночи' : h < 12 ? 'Доброе утро' : h < 18 ? 'Добрый день' : 'Добрый вечер'
 }
-
-export const TASKS = [
-  { title: 'Подписать 3 платежа', note: 'Поставщики сырья · 1,8 млн ₽', date: 'Сегодня, до 19:00', tone: 'urgent' },
-  { title: 'Проверить запас по ковенантам', note: 'Сценарий сохранения ставки 14% до весны', date: 'До 28 октября', tone: 'normal' },
-  { title: 'Обновить валютный прогноз', note: 'Валютные расчёты на I квартал 2027', date: 'До 30 октября', tone: 'normal' },
-  { title: 'Сверить лимиты контрагентов', note: '6 компаний требуют пересмотра', date: 'До 1 ноября', tone: 'normal' },
-]
 
 export default function HomePage() {
   const s = useSession()
@@ -28,7 +21,7 @@ export default function HomePage() {
   const first = top.find(e => e.item_id === sum.data?.top?.item_id) ?? top[0]
 
   return <div className="page dashboard-page">
-    <PageHeader eyebrow={fmtDate(new Date().toISOString())} title={greeting()} subtitle={company.data ? `${companyLabel(company.data)} · ${company.data.company_id} · ${company.data.geo.region ?? 'регион не указан'}` : ' '} />
+    <PageHeader eyebrow={fmtDate(new Date().toISOString())} title={greeting()} subtitle={company.data ? `${companyLabel(company.data)} · ${company.data.geo.region ?? 'регион не указан'}` : ' '} />
 
     {/* Главная точка входа в сервис (К09) */}
     <section className="signal-hero">
@@ -53,10 +46,17 @@ export default function HomePage() {
         <div className="mini-chart"><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /></div>
         <div className="card-footer"><span>Поступления сегодня</span><b className="positive">+ 48 600 000 ₽</b></div>
       </Link>
-      <section className="surface action-card">
-        <div className="section-title"><div><Eyebrow>На контроле</Eyebrow><h3>Ближайшие действия</h3></div><span className="tiny-count">{TASKS.length}</span></div>
-        {TASKS.slice(0, 3).map((t, i) => <Link to={`/tasks?focus=${i}`} className="task-row" key={t.title}><span className={`task-icon t${i}`}>{i === 0 ? <WalletCards /> : i === 1 ? <ShieldCheck /> : <TrendingUp />}</span><div><b>{t.title}</b><small>{t.date}</small></div><ChevronRight size={18} /></Link>)}
-      </section>
+      {company.data ? <Link to="/profile" className="surface company-summary-card interactive-card">
+        <div className="section-title"><div><Eyebrow>О компании</Eyebrow><h3>{companyLabel(company.data)}</h3></div><span className="company-summary-icon"><Building2 /></span></div>
+        <p className="company-summary-type">{company.data.level === 'group' ? 'Группа компаний' : company.data.client_type === 'PROSPECT' ? 'Потенциальный клиент' : 'Клиент банка'}</p>
+        <div className="company-summary-grid">
+          <div><span>Отрасль</span><b>{company.data.industry.okved_name ?? 'Не указана'}</b></div>
+          <div><span>Регион</span><b>{company.data.geo.region ?? 'Не указан'}</b></div>
+          <div><span>Выручка</span><b>{fmtRub(company.data.size.revenue_rub)}</b></div>
+          <div><span>Полнота профиля</span><b className={company.data.data_quality.missing_fields.length ? '' : 'positive'}>{company.data.data_quality.missing_fields.length ? 'Есть пробелы' : 'Высокая'}</b></div>
+        </div>
+        <div className="company-summary-footer">Открыть профиль <ArrowRight size={17} /></div>
+      </Link> : <section className="surface company-summary-card" aria-busy="true"><Skel w="45%" h={20} /><Skel w="75%" /><Skel w="100%" h={120} /></section>}
     </div>
 
     <section className="section-block">

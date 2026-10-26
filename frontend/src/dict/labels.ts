@@ -31,7 +31,7 @@ export const TOPIC_LABEL: Record<string, string> = {
   consumption: 'Потребление и розница', labor: 'Рынок труда', fx_gold: 'Валюта и внешние рынки',
   gdp_industry: 'ВВП и промышленность', steel: 'Металлургия и сталь',
 }
-export const topicLabel = (k: string) => TOPIC_LABEL[k] ?? k
+export const topicLabel = (k: string) => TOPIC_LABEL[k] ?? 'Другая тема'
 
 // Пути полей профиля (why_it_matters.company_features_used) → понятная подпись и значение из профиля.
 const FEATURE_LABEL: Record<string, string> = {
@@ -45,7 +45,7 @@ const FEATURE_LABEL: Record<string, string> = {
   'group.group_id': 'Группа компаний', 'group.group_revenue_rub': 'Выручка группы', 'market_position': 'Положение в отрасли',
 }
 export function featureLabel(path: string): string {
-  return FEATURE_LABEL[path] ?? path
+  return FEATURE_LABEL[path] ?? 'Данные профиля'
 }
 export function featureValue(profile: CompanyProfile | undefined, path: string): string | null {
   if (!profile) return null
@@ -65,7 +65,20 @@ export const featureText = (profile: CompanyProfile | undefined, path: string) =
 // Компании обезличены: имени нет, показываем отрасль и идентификатор.
 export function shortIndustry(name: string | null | undefined): string {
   if (!name) return 'Компания'
-  return name.replace(/^Торговля (оптовая|розничная) /, (_, t) => (t === 'оптовая' ? 'Опт: ' : 'Розница: ')).replace(/, включая.*$/, '').replace(/ в специализированных магазинах/, '').split(',')[0]
+  const clean = name
+    .replace(/, включая.*$/, '')
+    .replace(/ в специализированных магазинах$/, '')
+    .trim()
+
+  // Наименования ОКВЭД часто начинаются с конструкции «Торговля розничная…».
+  // Для интерфейса перестраиваем её в нормальную именную форму, не превращая
+  // название компании в техническое «Розница: одеждой».
+  return clean
+    .replace(/^Торговля розничная(?:\s+|$)/i, 'Розничная торговля ')
+    .replace(/^Торговля оптовая(?:\s+|$)/i, 'Оптовая торговля ')
+    .replace(/^Перевозка грузов неспециализированными автотранспортными средствами$/i, 'Грузовые автоперевозки')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 export function companyLabel(c: CompanyBrief | CompanyProfile | undefined): string {
   if (!c) return '…'

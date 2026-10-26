@@ -55,7 +55,7 @@ export function Followup({ card, title, onSource, prefill }: { card: InsightCard
     {err && <ErrorBanner error={err} />}
     <form onSubmit={(e: FormEvent) => { e.preventDefault(); ask(question) }}>
       <div className="question-box">
-        <textarea ref={inputRef} id="followup-question" maxLength={500} value={question} onChange={e => setQuestion(e.target.value)} placeholder="Например: что это значит для бюджета на 2027 год?"
+        <textarea ref={inputRef} id="followup-question" name="followup-question" autoComplete="off" maxLength={500} value={question} onChange={e => setQuestion(e.target.value)} placeholder="Например: что это значит для бюджета на 2027 год?"
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ask(question) } }} />
         <button disabled={!question.trim() || !!pendingQ} aria-label="Спросить">{pendingQ ? <span className="spinner" /> : <ArrowRight />}</button>
       </div>

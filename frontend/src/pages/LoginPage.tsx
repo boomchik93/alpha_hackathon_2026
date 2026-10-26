@@ -16,8 +16,8 @@ export default function LoginPage() {
   useTheme()
   const s = useSession()
   const nav = useNavigate()
-  const [login, setLogin] = useState('retail.cfo')
-  const [password, setPassword] = useState('demo-cfo-1595')
+  const [login, setLogin] = useState('')
+  const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState<ApiError | null>(null)
 
@@ -48,22 +48,22 @@ export default function LoginPage() {
         <Eyebrow>{USE_MOCK ? 'Демо-доступ' : 'Вход'}</Eyebrow>
         <h1>Войти в Альфа Бизнес</h1>
         <p>Лента и карточки подстраиваются под компанию и вашу роль.</p>
-        <label className="login-field" htmlFor="login-input">Логин<input id="login-input" value={login} onChange={e => setLogin(e.target.value)} autoComplete="username" /></label>
-        <label className="login-field" htmlFor="password-input">Пароль<input id="password-input" type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" /></label>
+        <label className="login-field" htmlFor="login-input">Логин<input id="login-input" name="username" value={login} onChange={e => setLogin(e.target.value)} autoComplete="username" spellCheck={false} /></label>
+        <label className="login-field" htmlFor="password-input">Пароль<input id="password-input" name="password" type="password" value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" spellCheck={false} /></label>
         {err && <ErrorBanner error={err} />}
-        <button className="primary-button" disabled={busy}>{busy ? 'Входим…' : <>Войти <ArrowRight /></>}</button>
+        <button className="primary-button" disabled={busy || !login.trim() || !password}>{busy ? 'Входим…' : <>Войти <ArrowRight /></>}</button>
         <>
           <div className="login-divider"><span>тестовые аккаунты для жюри</span></div>
           <div className="account-list">
             {USERS.map(u => (
               <button type="button" key={u.login} className={`account-option ${login === u.login ? 'selected' : ''}`} onClick={() => { setLogin(u.login); setPassword(u.password); enter(u.login, u.password) }}>
                 <span className={`account-avatar ${u.access !== 'user' ? 'special' : ''}`}>{u.display_name.split(/[\s,]+/).slice(0, 2).map(x => x[0].toUpperCase()).join('')}</span>
-                <span className="account-text"><b>{accessLabel(u)}</b><small>{u.login} · {accountLine(u)}</small></span>
+                <span className="account-text"><b>{accessLabel(u)}</b><small>{accountLine(u)}</small></span>
                 <ArrowRight size={16} />
               </button>
             ))}
           </div>
-          <div className="demo-note"><Sparkles /><div><b>{USE_MOCK ? 'Демо без сервера' : 'Демо-аккаунты'}</b><p>Компании обезличены, новости — тестовый корпус. Аккаунты те же, что в backend/seed_users.json.</p></div></div>
+          <div className="demo-note"><Sparkles /><div><b>{USE_MOCK ? 'Демо без сервера' : 'Демо-аккаунты'}</b><p>Компании обезличены, новости — тестовый корпус. Демо-профили подготовлены заранее.</p></div></div>
         </>
       </form>
     </div>

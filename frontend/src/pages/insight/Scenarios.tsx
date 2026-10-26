@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { ChevronDown, Compass, GitFork, Minus, ThumbsDown, ThumbsUp, Waypoints } from 'lucide-react'
 import { useScenarios } from '../../api/hooks'
 import type { InsightCard, ScenarioBranch, ScenarioKind, ScenarioSet } from '../../api/types'
@@ -36,6 +36,28 @@ export function Scenarios({ card, onSource, active }: { card: InsightCard; onSou
 function ScenarioView({ set, onSource, active }: { set: ScenarioSet; onSource(id: string): void; active: string | null }) {
   const { fork, analysis } = set
   const branches = KINDS.map(k => set.branches.find(b => b.kind === k)).filter(Boolean) as ScenarioBranch[]
+  const [openKind, setOpenKind] = useState<ScenarioKind | null>('base')
+  const [closing, setClosing] = useState(false)
+  const [nextKind, setNextKind] = useState<ScenarioKind | null>(null)
+
+  const toggleBranch = (kind: ScenarioKind) => {
+    if (closing) return
+    if (openKind === kind) {
+      setNextKind(null)
+      setClosing(true)
+    } else if (openKind) {
+      setNextKind(kind)
+      setClosing(true)
+    } else {
+      setOpenKind(kind)
+    }
+  }
+
+  const finishClosing = () => {
+    setClosing(false)
+    setOpenKind(nextKind)
+    setNextKind(null)
+  }
   return <>
     <div className="scen-fork">
       <span className="scen-fork-icon"><Waypoints /></span>
@@ -47,7 +69,10 @@ function ScenarioView({ set, onSource, active }: { set: ScenarioSet; onSource(id
     </div>
 
     <div className="scen-branches">
-      {branches.map(b => <Branch key={b.kind} b={b} outcome={fork.outcomes[b.kind]} set={set} onSource={onSource} active={active} />)}
+      {branches.map(b => <Fragment key={b.kind}>
+        <Branch b={b} outcome={fork.outcomes[b.kind]} open={openKind === b.kind} onToggle={() => toggleBranch(b.kind)} />
+        {openKind === b.kind && <BranchDetails b={b} set={set} onSource={onSource} active={active} closing={closing} onClose={() => toggleBranch(b.kind)} onClosed={finishClosing} />}
+      </Fragment>)}
     </div>
 
     <div className="scen-summary">
@@ -73,22 +98,38 @@ function ScenarioView({ set, onSource, active }: { set: ScenarioSet; onSource(id
   </>
 }
 
-function Branch({ b, outcome, set, onSource, active }: { b: ScenarioBranch; outcome: string; set: ScenarioSet; onSource(id: string): void; active: string | null }) {
-  const [open, setOpen] = useState(b.kind === 'base')
-  return <article className={`scen-branch ${b.kind}`}>
+function Branch({ b, outcome, open, onToggle }: { b: ScenarioBranch; outcome: string; open: boolean; onToggle(): void }) {
+  return <article className={`scen-branch ${b.kind}${open ? ' is-open' : ''}`}>
     <div className="scen-branch-top"><span className="scen-kind">{KIND_LABEL[b.kind]}</span><Pill tone={LIKELY_TONE[b.likelihood]} title={b.likelihood_basis}>{LIKELIHOOD[b.likelihood]}</Pill></div>
     <h3>{b.title}</h3>
     <p className="scen-outcome">{outcome}</p>
     <p className="scen-impact"><b>Для компании:</b> {b.impact}</p>
-    <button className="scen-more-btn" onClick={() => setOpen(!open)} aria-expanded={open}>{open ? 'Свернуть' : 'Подробнее'} <ChevronDown size={15} className={open ? 'rotated' : ''} /></button>
-    {open && <div className="scen-more">
-      <p className="muted">Допущение: {b.assumption}</p>
-      <p className="muted">Почему такая оценка: {b.likelihood_basis}</p>
+    <button className="scen-more-btn" onClick={onToggle} aria-expanded={open} aria-controls={`scenario-details-${b.kind}`}>{open ? 'Свернуть' : 'Подробнее'} <ChevronDown size={15} className={open ? 'rotated' : ''} /></button>
+  </article>
+}
+
+function BranchDetails({ b, set, onSource, active, closing, onClose, onClosed }: { b: ScenarioBranch; set: ScenarioSet; onSource(id: string): void; active: string | null; closing: boolean; onClose(): void; onClosed(): void }) {
+  return <div
+    id={`scenario-details-${b.kind}`}
+    className={`scen-details-shell ${b.kind}${closing ? ' is-closing' : ''}`}
+    onAnimationEnd={event => { if (closing && event.target === event.currentTarget) onClosed() }}
+  >
+  <section className={`scen-details surface ${b.kind}`}>
+    <div className="scen-details-head">
+      <div><span className="scen-kind">{KIND_LABEL[b.kind]}</span><h3>{b.title}</h3></div>
+      <button className="scen-more-btn" onClick={onClose}>Свернуть <ChevronDown size={15} className="rotated" /></button>
+    </div>
+    <div className="scen-details-intro">
+      <p><b>Допущение:</b> {b.assumption}</p>
+      <p><b>Почему такая оценка:</b> {b.likelihood_basis}</p>
+    </div>
+    <div className="scen-details-grid">
       {b.risks.length > 0 && <div><span className="scen-label">Риски</span>{b.risks.map(c => <Claim key={c.text} c={c} sources={set.sources} onSource={onSource} active={active} />)}</div>}
       {b.opportunities.length > 0 && <div><span className="scen-label">Возможности</span>{b.opportunities.map(c => <Claim key={c.text} c={c} sources={set.sources} onSource={onSource} active={active} />)}</div>}
       {b.actions.length > 0 && <div><span className="scen-label">Что делать</span><ul>{b.actions.map(a => <li key={a.text}>{a.text}</li>)}</ul></div>}
       {b.signals.length > 0 && <div><span className="scen-label">Признаки, что идём по этой ветке</span><ul>{b.signals.map(x => <li key={x}>{x}</li>)}</ul></div>}
-      {b.limitations.map(l => <p key={l} className="muted">Ограничение: {l}</p>)}
-    </div>}
-  </article>
+    </div>
+    {b.limitations.map(l => <p key={l} className="scen-detail-limitation">Ограничение: {l}</p>)}
+  </section>
+  </div>
 }

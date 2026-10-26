@@ -36,7 +36,7 @@ export default function ProfilePage() {
     {c && <div className="profile-grid">
       <section className="profile-hero surface">
         <div className="company-monogram">{(c.industry.okved_name ?? 'К')[0]}</div>
-        <div><Pill tone="success"><BadgeCheck size={13} /> {isGroup ? 'Группа компаний' : c.client_type === 'PROSPECT' ? 'Потенциальный клиент' : 'Клиент банка'}</Pill><h2>{c.industry.okved_name ?? 'Отрасль не указана'}</h2><p>ОКВЭД {c.industry.okved_code ?? '—'} · ID {c.company_id}</p></div>
+        <div><Pill tone="success"><BadgeCheck size={13} /> {isGroup ? 'Группа компаний' : c.client_type === 'PROSPECT' ? 'Потенциальный клиент' : 'Клиент банка'}</Pill><h2>{c.industry.okved_name ?? 'Отрасль не указана'}</h2><p>ОКВЭД {c.industry.okved_code ?? '—'}</p></div>
         <div className="quality"><span>Полнота данных профиля</span><b>{gaps ? 'Есть пробелы' : 'Высокая'}</b><div><i style={{ width: `${quality}%`, background: gaps ? '#d79b13' : undefined }} /></div></div>
       </section>
       <div className="profile-col">
@@ -54,10 +54,10 @@ export default function ProfilePage() {
         {PRODUCTS.map(k => <div className="info-row" key={k}><span>{featureLabel(`bank_products.${k}`)}</span><b>{yn(c.bank_products[k])}</b></div>)}
       </section>
       <section className="surface info-card"><div className="info-title"><span><ListChecks /></span><h3>Признаки для ленты</h3></div>
-        {FEATURES.map(f => <div className="info-row" key={f}><span>{featureLabel(f)}<code className="field-path">{f}</code></span><b>{featureValue(c, f) ?? 'нет данных'}</b></div>)}
+        {FEATURES.map(f => <div className="info-row" key={f}><span>{featureLabel(f)}</span><b>{featureValue(c, f) ?? 'нет данных'}</b></div>)}
       </section>
       {isGroup && <section className="surface info-card"><div className="info-title"><span><Layers3 /></span><h3>Компании группы</h3></div>
-        {c.member_ids.map(id => <div className="info-row" key={id}><span>Компания {id}</span>{companies.data?.some(x => x.company_id === id) ? <button className="text-button link-red" onClick={() => s.setCompanyId(id)}>Открыть профиль</button> : <b>учтена в группе</b>}</div>)}
+        {c.member_ids.map((id, index) => { const member = companies.data?.find(x => x.company_id === id); return <div className="info-row" key={id}><span>{member ? companyLabel(member) : `Компания группы ${index + 1}`}</span>{member ? <button className="text-button link-red" onClick={() => s.setCompanyId(id)}>Открыть профиль</button> : <b>учтена в группе</b>}</div> })}
       </section>}
       <section className="surface data-use"><ShieldCheck /><div><h3>Как используются данные</h3><p>Модель получает профиль только этой компании, работает в режиме чтения и не видит реквизиты и персональные данные. Данные банка обезличены.</p></div></section>
       </div>

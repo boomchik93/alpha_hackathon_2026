@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { CircleDollarSign, FileChartColumn, Gauge, ThumbsUp } from 'lucide-react'
 import { api } from '../api'
-import type { ApiError, AuditRow, FeedbackSummary, Health, Role, VoteStats } from '../api/types'
+import { useCompanies } from '../api/hooks'
+import type { ApiError, AuditRow, CompanyBrief, FeedbackSummary, Health, Role, VoteStats } from '../api/types'
 import { useSession } from '../auth/session'
 import { ErrorBanner, Eyebrow, PageHeader, Pill, Skel } from '../components/ui'
-import { REASON_LABEL, ROLE_LABEL, fmtDate, fmtTime } from '../dict/labels'
+import { REASON_LABEL, ROLE_LABEL, companyLabel, fmtDate, fmtTime } from '../dict/labels'
 
 const rub = (v: number) => v.toFixed(1).replace('.', ',') + ' ₽'
 const useful = (g?: VoteStats) => (g && g.total ? 1 - (g.down_share ?? 0) : null)
@@ -13,7 +14,8 @@ const ACTION: Record<string, [string, string]> = {
   login: ['Вход', 'neutral'], login_failed: ['Неудачный вход', 'red'], insight: ['Карточка', 'success'], scenarios: ['Сценарии', 'success'],
   followup: ['Уточняющий вопрос', 'neutral'], feedback: ['Оценка', 'warning'], trace: ['Трасса', 'neutral'], source: ['Первоисточник', 'neutral'],
 }
-const actionLabel = (a: string) => ACTION[a] ?? [a, 'neutral']
+const actionLabel = (a: string) => ACTION[a] ?? ['Другое действие', 'neutral']
+const auditSubject = (r: AuditRow) => r.detail === 'up' ? 'Полезно' : r.detail === 'down' ? 'Не полезно' : r.item_id ? 'Материал ленты' : 'Системное событие'
 
 // Мониторинг качества и расхода (К08, О04): /health, /feedback/summary, /admin/audit. Для эксперта и администратора.
 export default function MonitoringPage() {
@@ -22,6 +24,7 @@ export default function MonitoringPage() {
   const health = useQuery({ queryKey: ['health'], queryFn: () => api.health(), refetchInterval: 15_000, staleTime: 0 })
   const fb = useQuery({ queryKey: ['feedback-summary'], queryFn: () => api.feedbackSummary(), enabled: allowed, refetchInterval: 15_000, staleTime: 0 })
   const audit = useQuery({ queryKey: ['audit'], queryFn: () => api.audit(50), enabled: s.user?.access === 'admin', refetchInterval: 15_000, staleTime: 0 })
+  const companies = useCompanies(s.user?.login)
   const err = (fb.error ?? audit.error ?? health.error) as unknown as ApiError | null
   const isAdmin = s.user?.access === 'admin'
   return <div className="page">
@@ -29,11 +32,11 @@ export default function MonitoringPage() {
     {!allowed && <ErrorBanner error={{ status: 403, code: 'forbidden', message: 'Мониторинг доступен эксперту и администратору' }} />}
     {err && <ErrorBanner error={err} onRetry={() => { health.refetch(); fb.refetch(); audit.refetch() }} />}
     {allowed && (!health.data || !fb.data) && !err && <div className="metrics-grid">{[0, 1, 2, 3].map(i => <section key={i} className="surface metric"><Skel w="50%" /><Skel w="40%" h={26} /></section>)}</div>}
-    {allowed && health.data && fb.data && <Dashboard h={health.data} f={fb.data} rows={audit.data ?? []} showAudit={isAdmin} />}
+    {allowed && health.data && fb.data && <Dashboard h={health.data} f={fb.data} rows={audit.data ?? []} companies={companies.data ?? []} showAudit={isAdmin} />}
   </div>
 }
 
-function Dashboard({ h, f, rows, showAudit }: { h: Health; f: FeedbackSummary; rows: AuditRow[]; showAudit: boolean }) {
+function Dashboard({ h, f, rows, companies, showAudit }: { h: Health; f: FeedbackSummary; rows: AuditRow[]; companies: CompanyBrief[]; showAudit: boolean }) {
   const spent = h.spent_today_rub ?? 0
   const budget = h.budget_rub ?? 500
   const spend = spent / budget
@@ -45,7 +48,7 @@ function Dashboard({ h, f, rows, showAudit }: { h: Health; f: FeedbackSummary; r
   const asked = rows.filter(r => r.action === 'followup').length
   const scen = rows.filter(r => r.action === 'scenarios').length
   const uU = useful(f.user), uE = useful(f.expert)
-  const versions = Object.entries(f.ml ?? {}).filter(([k]) => k !== 'все')
+  const companyName = (id: string | null) => id ? companyLabel(companies.find(c => c.company_id === id)) : '—'
   return <>
     <div className="metrics-grid">
       <section className={`surface metric ${h.ml_ok ? 'green' : 'red'}`}><div><Gauge /><span>ML-сервис</span></div><b>{h.ml_ok ? 'Работает' : 'Недоступен'}</b><small>{h.ml_ok ? (h.llm_mock ? 'модель в режиме заглушки' : 'модель подключена') : h.ml_error ?? 'нет ответа'}</small></section>
@@ -73,8 +76,7 @@ function Dashboard({ h, f, rows, showAudit }: { h: Health; f: FeedbackSummary; r
         <div className="section-title"><div><Eyebrow>Причины</Eyebrow><h3>Почему «не полезно»</h3></div></div>
         {Object.entries(reasons).map(([r, n]) => <div className="issue-row" key={r}><span><i style={{ width: `${(n / maxReason) * 100}%` }} /></span><b>{REASON_LABEL[r as keyof typeof REASON_LABEL] ?? r}</b><em>{n}</em></div>)}
         {!Object.keys(reasons).length && <p className="muted">Отрицательных оценок нет.</p>}
-        {versions.length > 0 && <div className="prompt-versions">{versions.map(([v, g]) => <div key={v}><b>Промпт {v}</b><span>{g.total} оценок · не полезно {pctOr(g.down_share)}</span></div>)}</div>}
-        {!f.ml && <p className="muted">ML-сервис не вернул статистику по версиям промпта.</p>}
+        {!f.ml && <p className="muted">Сервис пока не вернул расширенную статистику качества.</p>}
       </section>
       </div>
     </div>
@@ -88,8 +90,8 @@ function Dashboard({ h, f, rows, showAudit }: { h: Health; f: FeedbackSummary; r
         <div className="traces-row head"><span>Время</span><span>Что</span><span>Компания</span><span>Действие</span><span>Польз.</span></div>
         {rows.map(r => { const [label, tone] = actionLabel(r.action); return <div className="traces-row" key={r.id}>
           <span>{fmtTime(r.ts)}<small className="muted"> {fmtDate(r.ts, true)}</small></span>
-          <span><b>{r.item_id ?? r.detail ?? '—'}</b><small>{r.trace_id ?? r.card_id ?? ''}</small></span>
-          <span>{r.company_id ?? '—'}</span>
+          <span><b>{auditSubject(r)}</b></span>
+          <span>{companyName(r.company_id)}</span>
           <span><Pill tone={tone}>{label}</Pill></span>
           <span>{r.user_id ?? '—'}</span>
         </div> })}

@@ -8,8 +8,13 @@ export const useCompanies = (login?: string) =>
 export const useCompany = (id: string) =>
   useQuery({ queryKey: ['company', id], queryFn: () => api.company(id), enabled: !!id })
 
-export const useFeed = (companyId: string, filters: FeedFilters = {}) =>
-  useQuery({ queryKey: ['feed', companyId, filters], queryFn: () => api.feed(companyId, filters), enabled: !!companyId, placeholderData: prev => prev })
+export const useFeed = (companyId: string, filters: FeedFilters = {}, keepPreviousData = true) =>
+  useQuery({
+    queryKey: ['feed', companyId, filters],
+    queryFn: () => api.feed(companyId, filters),
+    enabled: !!companyId,
+    placeholderData: keepPreviousData ? prev => prev : undefined,
+  })
 
 export const useSummary = (companyId: string) =>
   useQuery({ queryKey: ['summary', companyId], queryFn: () => api.summary(companyId), enabled: !!companyId })

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { BrowserRouter, HashRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { useSession } from './auth/session'
 import { Shell } from './components/Shell'
-import { FinancesPage, TasksPage } from './pages/BankPages'
+import { FinancesPage } from './pages/BankPages'
 import FeedPage from './pages/FeedPage'
 import HistoryPage from './pages/HistoryPage'
 import HomePage from './pages/HomePage'
@@ -35,7 +35,6 @@ export default function App() {
       <Route path="/history" element={<Private><HistoryPage /></Private>} />
       <Route path="/monitoring" element={<Private><MonitoringPage /></Private>} />
       <Route path="/finances" element={<Private><FinancesPage /></Private>} />
-      <Route path="/tasks" element={<Private><TasksPage /></Private>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   </Router>
