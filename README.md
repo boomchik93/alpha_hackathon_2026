@@ -8,7 +8,7 @@
 |---|---|
 | Работающий прототип | **https://semenovm.ru/alpha26/** (живые модели организаторов, новости собираются каждые 15 минут) |
 | Логины | подсказаны на экране входа; роли и компании — в [`backend/seed_users.json`](backend/seed_users.json) (на стенде у `admin` свой пароль) |
-| Версия на дедлайн | тег [`v1.0`](https://github.com/boomchik93/alpha_hackathon_2026/releases/tag/v1.0), commit `[hash]` |
+| Версия на дедлайн | тег [`v1.0`](https://github.com/boomchik93/alpha_hackathon_2026/releases/tag/v1.0), commit `bb5719a3a1d9b703feb8a9c5fb514945851797a7` |
 | Презентация | [`product/demo/`](product/demo/) |
 
 ## Как проверить за 10 минут
