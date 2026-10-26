@@ -1,4 +1,4 @@
-"""Сбор holdout2: настоящий отложенный набор новостей из RSS (REVIEW_PLAN.md, T3).
+"""Сбор holdout2: настоящий отложенный набор новостей из RSS.
 
     python -m ml.eval.collect_holdout2 --dry-run            # посмотреть счётчики, ничего не писать
     python -m ml.eval.collect_holdout2 --n 50               # собрать и заморозить (пишет holdout2_news.jsonl и holdout2.lock)

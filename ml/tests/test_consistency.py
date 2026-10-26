@@ -1,4 +1,4 @@
-"""Сверка противоречий событие/банк (REVIEW_PLAN.md, T15)."""
+"""Сверка противоречий событие/банк."""
 
 import pytest
 
@@ -75,7 +75,8 @@ def test_contradiction_goes_to_prompt_and_limitations_rule(monkeypatch):
 
 
 @needs_data
-def test_flag_off_by_default():
+def test_flag_off(monkeypatch):
+    monkeypatch.setenv("ML_CONSISTENCY", "0")
     client = SpyClient()
     card = run_insight("U_1595", "n_2026_09_13_rate_cut_rumor", client)
     assert not [e for e in load_trace(card.trace_id)["events"] if e["event"] == "consistency"]

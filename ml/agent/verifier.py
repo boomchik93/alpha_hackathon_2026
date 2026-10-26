@@ -10,7 +10,7 @@ from pydantic import BaseModel
 from ml.llm.client import LLMClient
 from ml.prompts import render
 from ml.safety import INJECTION
-from ml.schemas import CompanyProfile, InsightCard, ParsedItem
+from ml.schemas import CompanyProfile, InsightCard, ParsedItem, SourceKind
 from ml.topics import facets_overlap, topic_facets
 
 BANK_HIT_MIN_SCORE = 0.35
@@ -197,6 +197,13 @@ def item_texts(item: ParsedItem) -> list[str]:
     return [item.title, item.summary or "", *(f"{f.text} {f.span or ''}" for f in item.facts)]
 
 
+def own_doc_texts(item: ParsedItem, bank_hits: list[dict]) -> list[str]:
+    """Материал — сам документ аналитики банка: в ITEM только его сводка и факты, а событие целиком лежит во фрагментах
+    того же документа, которые модель видела в BANK_CHUNKS. Для новости пусто."""
+    doc = item.source.doc_id if item.source.kind == SourceKind.bank_analytics else None
+    return [h["text"] for h in bank_hits if doc and h.get("doc_id") == doc]
+
+
 def item_topic_text(item: ParsedItem) -> str:
     return " ".join(item_texts(item))
 
@@ -212,10 +219,10 @@ def good_bank_hits(bank_hits: list[dict], item: ParsedItem) -> list[dict]:
 def number_issues(card: InsightCard, profile: CompanyProfile, item: ParsedItem, bank_hits: list[dict],
                   extra_items: list[ParsedItem] | tuple = ()) -> list[str]:
     """Каждая цифра карточки должна найтись там, откуда её можно было взять. Дополнительные материалы (search_news)
-    входят в пул цифр, кроме what_happened: оно пишется только по ITEM."""
+    входят в пул цифр, кроме what_happened: оно пишется только по ITEM (у документа банка — и по его фрагментам)."""
     issues = []
     ev = item_texts(item)
-    wh = ungrounded_numbers(card.what_happened.text, ev)
+    wh = ungrounded_numbers(card.what_happened.text, ev + own_doc_texts(item, bank_hits))
     if wh:
         issues.append(f"what_happened: цифр {wh} нет в событии (ITEM). Пиши what_happened только по событию, цифры банка не переноси")
     pool = ev + [t for x in extra_items for t in item_texts(x)] + [h["text"] for h in bank_hits]

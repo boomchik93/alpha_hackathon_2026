@@ -1,4 +1,4 @@
-"""Ошибки LLM и коды ответа API (REVIEW_PLAN.md, T5)."""
+"""Ошибки LLM и коды ответа API."""
 
 import pytest
 from fastapi.testclient import TestClient

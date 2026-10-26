@@ -10,11 +10,13 @@ from dataclasses import dataclass, field
 from typing import Any, Callable
 
 from ml.agent.trace import Trace
+from ml.ingest.analytics import core_docs
 from ml.ingest.store import get_item
 from ml.profile.build_profile import get_profile
 from ml.ranking.ranker import score_item
 from ml.retrieval.index import get_index
 from ml.schemas import CompanyProfile, ParsedItem, SourceKind
+from ml.topics import TOPICS
 
 
 class ToolDenied(PermissionError):
@@ -97,11 +99,14 @@ class ToolRegistry:
         hits = get_index().search(query, k=k, include_stale=include_stale, doc_ids=set(doc_ids) if doc_ids else None)
         return self._keep([(h, h.score) for h in hits])
 
-    def _search_bank_analytics_multi(self, queries: list[str], k: int = 3, per_doc: int = 2, include_stale: bool = True) -> list[dict]:
-        """Несколько запросов, слияние RRF, не больше per_doc фрагментов с одного документа (IMPROVEMENTS.md, F2).
+    def _search_bank_analytics_multi(self, queries: list[str], k: int = 3, per_doc: int = 2, include_stale: bool = True,
+                                     core_topics: list[str] | None = None) -> list[dict]:
+        """Несколько запросов, слияние RRF, не больше per_doc фрагментов с одного документа.
 
         Разнообразие документов вместо соседних кусков одной страницы; скор фрагмента это лучший
         нормированный скор по запросам, чтобы пороги проверки работали как для одного запроса.
+        core_topics: темы материала; если ни один отобранный фрагмент не из профильного документа темы
+        (`ml.ingest.analytics.core_docs`), добавляется лучший по запросу темы фрагмент такого документа сверх k.
         """
         fused: dict[str, float] = {}
         best: dict[str, tuple] = {}
@@ -120,6 +125,14 @@ class ToolRegistry:
             picked.append((h, score))
             if len(picked) == k:
                 break
+        for topic in core_topics or []:
+            docs = core_docs(topic)
+            if not docs or any(h.chunk.doc_id in docs for h, _ in picked):
+                continue
+            # Запрос по названию темы (см. orchestrator._bank_queries) точнее общего: общий тянет таблицы показателей.
+            title = TOPICS[topic].title if topic in TOPICS else ""
+            q = next((x for x in queries if title and x.startswith(title)), queries[0])
+            picked += [(h, h.score) for h in get_index().search(q, k=1, include_stale=False, doc_ids=docs)]
         return self._keep(picked)
 
     def _search_news(self, item_id: str, days: int = 3, limit: int = 2) -> list[dict]:

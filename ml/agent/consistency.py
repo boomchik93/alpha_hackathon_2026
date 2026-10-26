@@ -1,8 +1,9 @@
-"""Сверка противоречий (REVIEW_PLAN.md, T15): факты материала против фрагментов аналитики банка.
+"""Сверка противоречий: факты материала против фрагментов аналитики банка.
 
 Отдельный дешёвый вызов до интерпретации. Если найдено расхождение, оно передаётся в промпт интерпретации блоком
-CONTRADICTIONS, а `rule_check` требует назвать его в `limitations`. Включается ML_CONSISTENCY=1; по умолчанию выключено
-до замера (`python -m ml.eval.eval_consistency`, затем парное сравнение карточек на dev).
+CONTRADICTIONS, а `rule_check` требует назвать его в `limitations`. Включено по умолчанию, выключается ML_CONSISTENCY=0.
+Замер 2026-10-25 (`python -m ml.eval.eval_consistency`): синтетический набор 10 из 10; на 21 реальной паре демо-компаний
+слух о снижении ставки найден как расхождение, ложных срабатываний нет; ~0,003 руб. на карточку.
 """
 
 from __future__ import annotations
@@ -33,7 +34,7 @@ class ConsistencyResult(BaseModel):
 
 
 def enabled() -> bool:
-    return os.getenv("ML_CONSISTENCY", "0") == "1"
+    return os.getenv("ML_CONSISTENCY", "1") == "1"
 
 
 def clean(res: ConsistencyResult, fact_ids: set[str], chunk_ids: set[str]) -> ConsistencyResult:

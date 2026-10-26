@@ -1,4 +1,4 @@
-"""Итоговая оценка ленты на свежем наборе (STATUS_HANDOFF.md, шаг 3; PROTOCOL.md, T19).
+"""Итоговая оценка ленты на свежем наборе.
 
     ML_AS_OF=<as_of из real2_news.lock> python -m ml.eval.final_eval            # -> ml/eval/final_real2.md
     ML_AS_OF=2026-10-22 python -m ml.eval.final_eval --name real --out <файл>   # проверка кода на старом наборе (в выборке обучения)

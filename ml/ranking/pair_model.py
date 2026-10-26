@@ -1,11 +1,11 @@
-"""Модель пары «компания × материал» для ленты (STATUS_HANDOFF.md, шаг 2 плана).
+"""Модель пары «компания × материал» для ленты.
 
     ML_AS_OF=2026-10-22 python -m ml.ranking.pair_model cv       # выбор настроек: перекрёстная проверка по дням новостей
     ML_AS_OF=2026-10-22 python -m ml.ranking.pair_model train    # обучить на выбранных настройках -> ml/ranking/pair_model.json
     ML_AS_OF=2026-10-22 python -m ml.ranking.pair_model calibrate  # калибровка скор -> вероятность по ручным парам (вложенная CV)
 
 Зачем. Ручные веса эвристики не различают два главных типа ошибок на реальных новостях (ml/eval/analysis.md,
-«Реальные новости», и разбор ошибок в STATUS_HANDOFF.md): отраслевое событие с широкой темой («gdp_industry») уходит
+«Реальные новости»): отраслевое событие с широкой темой («gdp_industry») уходит
 всем компаниям, а макрособытие (scope="economy": инфляция, ставка) отсекается у компаний без продуктов банка.
 Нужные для этого сигналы уже есть (масштаб события, совпадение ОКВЭД, причины по темам и каналам), не хватает весов.
 
@@ -187,7 +187,7 @@ def tier_of_row(r: Row, s: float, main: float, maybe: float, macro_tier: str) ->
 
 def tier_metrics(rows: list[Row], scored: dict[tuple[str, str], tuple[float, float]], main: float | dict[str, float] = ranker.MAIN_SCORE,
                  maybe: float | dict[str, float] = ranker.MIN_SCORE, macro_tier: str = ranker.MACRO_FLOOR_TIER) -> dict:
-    """Метрики двух уровней ленты на парах с эталоном (FEED_TIERS_PLAN.md, этап 2), пары всех компаний суммируются.
+    """Метрики двух уровней ленты на парах с эталоном, пары всех компаний суммируются.
     main: precision, recall, F1, F0.5 основной ленты и precision@5 (первые 5 по порядку ленты у компании, суммарно);
     both: precision и recall основной ленты вместе с блоком «может быть»; maybe_share_of_rel: доля нужных пар,
     лежащих в блоке «может быть» (не прячем ли туда важное); maybe_precision: доля нужных среди пар блока.
@@ -301,7 +301,7 @@ def heuristic_metrics(rows: list[Row], items: list, companies: list[dict], rules
     return {**metrics(rows, scored, ranker.MIN_SCORE), "tiers": tier_metrics(rows if rules else without_rule_flags(rows), scored)}
 
 
-# Калибровка (FEED_TIERS_PLAN.md, этап 6): модель учится на машинной разметке, она мягче человека (на случайных парах
+# Калибровка: модель учится на машинной разметке, она мягче человека (на случайных парах
 # «релевантно» 15% против 8%), поэтому скор нужно перевести в вероятность, что человек сочтёт материал нужным.
 # Нужных ручных пар мало (28 из 210), поэтому функция из двух параметров (Platt): P = sigmoid(a * скор + b).
 PROB_MAIN, PROB_MAYBE = 0.5, 0.25  # пороги в вероятностях: основная лента и блок «может быть»

@@ -1,6 +1,6 @@
 # ML-слой
 
-Каркас по [ML_SPEC.md](docs/ML_SPEC.md) и [PLAN.md](docs/PLAN.md). Пока нет `LLM_BASE_URL`, все вызовы LLM идут в мок (`ml/llm/mock.py`): пайплайн работает целиком, но тексты карточек помечены `[MOCK]`.
+Каркас по [ML_SPEC.md](docs/ML_SPEC.md). Пока нет `LLM_BASE_URL`, все вызовы LLM идут в мок (`ml/llm/mock.py`): пайплайн работает целиком, но тексты карточек помечены `[MOCK]`.
 
 ## Запуск
 

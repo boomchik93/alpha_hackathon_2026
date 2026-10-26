@@ -127,6 +127,11 @@ def test_feedback_saved_and_summarized_by_access(client, fake_ml, alice):
     assert summary["user"]["by_role"]["cfo"]["total"] == 1
     assert summary["expert"]["total"] == 1 and summary["expert"]["down"] == 0
     assert "ml" in summary
+    # Вовлечённость из журнала: одно открытие карточки и две оценки после него.
+    assert summary["usage"]["actions"]["insight"]["count"] == 1
+    assert summary["usage"]["actions"]["feedback"] == {"count": 2, "users": 2}
+    assert summary["usage"]["actions_per_card"] == 2.0
+    assert summary["items_by_day"] is None or len(summary["items_by_day"]) == 14
     assert_error(client.get("/api/feedback/summary", headers=alice), 403, "forbidden")
     assert_error(client.post(f"/api/cards/{CARD_ID}/feedback", json={"rating": "meh"}, headers=alice), 422, "validation_error")
 
@@ -150,7 +155,9 @@ def test_feedback_kept_when_ml_fails(client, fake_ml, alice, monkeypatch):
 def test_trace_user_view_hides_internals(client, alice):
     client.get(INSIGHT, headers=alice)
     trace = client.get(f"/api/cards/{CARD_ID}/trace", headers=alice).json()
-    assert trace["plan"] == [{"tool": "compute_exposure", "why": "найти признаки профиля"}]
+    # Шаг рассуждения без инструмента приходит с tool=null: фронт показывает только пояснение.
+    assert trace["plan"] == [{"tool": "compute_exposure", "why": "найти признаки профиля"},
+                             {"tool": None, "why": "интерпретация, затем самопроверка"}]
     assert trace["tool_calls"] == [{"tool": "compute_exposure", "ms": 12}]
     assert trace["checks"] == [{"attempt": 0, "issues": 1}, {"attempt": 1, "issues": 0}] and trace["retries"] == 1
     assert trace["replans"] == [{"trigger": "bank_miss", "why": "переформулировать запрос"}]

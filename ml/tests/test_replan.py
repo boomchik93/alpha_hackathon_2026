@@ -1,4 +1,4 @@
-"""Перепланирование по данным и инструмент search_news (REVIEW_PLAN.md, T14)."""
+"""Перепланирование по данным и инструмент search_news."""
 
 from datetime import date
 
@@ -95,3 +95,34 @@ def test_search_news_is_whitelisted_and_company_scoped():
     assert "search_news" in reg.names
     with pytest.raises(ToolDenied):
         reg.call("search_news", item_id="n_2026_09_11_cbr_rate", company_id="U_OTHER")
+
+
+@needs_data
+def test_core_topic_doc_is_added_when_noisy_topics_crowd_it_out():
+    """Новость о курсе рубля с темой key_rate: фрагменты обзора золота (размечены key_rate) вытесняли обзор банка
+    по ставке; с core_topics поиск добирает фрагмент профильного документа сверх k (ml/eval/analysis.md, 25.10)."""
+    from ml.agent.orchestrator import _bank_queries
+    from ml.ingest.analytics import core_docs
+    from ml.profile.build_profile import get_profile
+
+    title = "ЦБ установил курс доллара ниже 81 руб. Впервые с августа"
+    item = ParsedItem(
+        item_id="n_test_fx", source=ItemSource(kind="news", title=title, published_at=date(2026, 9, 14)), title=title,
+        summary="Банк России установил официальный курс доллара на уровне 80,53 руб./$.", event_type="fx_commodities",
+        topics=["fx_gold", "key_rate"],
+        facts=[Fact(id="f1", text="Банк России установил официальный курс доллара на уровне 80,53 руб./$, евро — 90,24 руб./€",
+                    confidence="confirmed"),
+               Fact(id="f2", text="Банк России второй раз подряд сохранил ключевую ставку на уровне 14%", confidence="confirmed")])
+    queries = _bank_queries(get_profile("U_1595"), item)
+
+    def docs(core_topics):
+        hits = ToolRegistry(RunContext("U_1595"), Trace("t")).call(
+            "search_bank_analytics_multi", queries=queries, k=1, per_doc=1, core_topics=core_topics)
+        return {h["doc_id"] for h in hits}, len(hits)
+
+    # k=1: единственное место занимает обзор золота, профильный документ по ставке вытеснен.
+    rate = core_docs("key_rate")
+    without, n = docs(None)
+    assert n == 1 and not without & rate
+    with_core, n = docs(item.topics)
+    assert with_core & rate and with_core >= without and n == 2

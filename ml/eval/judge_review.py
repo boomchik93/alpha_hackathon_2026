@@ -1,4 +1,4 @@
-"""Ручная калибровка судей eval (IMPROVEMENTS.md, E4 п.3).
+"""Ручная калибровка судей eval.
 
     python -m ml.eval.judge_review make var/eval/<run_id>    # -> ml/eval/review_judges.md + review_judges_key.json
     python -m ml.eval.judge_review score                     # после заполнения review_judges.md

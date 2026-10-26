@@ -2,22 +2,23 @@
 
 ## Ветки
 
-- `main` — стабильная версия, в неё попадает только проверенное через pull request.
-- `ml/dev`, `backend/dev`, `frontend/dev`, `product/dev` — рабочие ветки направлений. Разработчик направления коммитит в свою ветку или в короткие ветки от неё (`backend/feat-auth`).
-- В `main` напрямую не пушим. Когда часть работы готова, открываем pull request из своей ветки в `main`.
+- `main` — сдаваемая версия; версия на дедлайн отмечена тегом (tag и commit hash в корневом README).
+- `ml/dev` — основная ветка разработки: в неё влиты ветки бэкенда (`backend/feat-*`) и фронтенда (`frontend/dev`).
+- Новая работа — в короткой ветке от `ml/dev` с префиксом направления (`backend/feat-auth`, `frontend/fix-feed`), затем pull request в `ml/dev`. В `main` попадает только проверенное через pull request.
 
 ## Порядок работы
 
 ```bash
 git clone git@github.com:boomchik93/alpha_hackathon_2026.git
-git checkout -b backend/dev origin/main   # один раз, имя по своему направлению
+git checkout -b backend/feat-x origin/ml/dev   # префикс по своему направлению
 # ... работа ...
-git add <файлы>                            # не `git add .`: следите, чтобы не попали .env и данные
+make test && make backend-test                   # перед pull request
+git add <файлы>                                  # не `git add .`: следите, чтобы не попали .env и данные
 git commit -m "backend: ручка /companies"
-git push -u origin backend/dev
+git push -u origin backend/feat-x
 ```
 
-Перед pull request подтяните свежий `main`: `git fetch && git merge origin/main`.
+Перед pull request подтяните свежую ветку: `git fetch && git merge origin/ml/dev`.
 
 ## Коммиты
 
@@ -27,7 +28,7 @@ git push -u origin backend/dev
 ## Что нельзя коммитить
 
 - `.env`, ключи, токены, пароли.
-- Архивы и сырые данные кейса (`data/`, `*.zip`), артефакты сборки (`var/`), виртуальные окружения, `node_modules/`.
+- Архивы и сырые данные кейса (`data/`, `*.zip`), артефакты сборки (`var/`, `var_live/`, `dist/`), виртуальные окружения, `node_modules/`. Демо-данные для жюри выкладываются архивом в релиз (`make demo-bundle`), не в git.
 - Чужие персональные данные.
 
 ## Pull request

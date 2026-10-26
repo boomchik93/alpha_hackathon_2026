@@ -211,6 +211,10 @@ class DB:
     def card(self, card_id: str) -> sqlite3.Row | None:
         return self._one("SELECT * FROM cards WHERE card_id=?", (card_id,))
 
+    def has_card(self, company_id: str, item_id: str, role: str | None) -> bool:
+        """Карточка для этой пары и роли уже отдавалась: ML вернёт её из кэша, без вызова модели. `IS` сравнивает и NULL."""
+        return self._one("SELECT 1 FROM cards WHERE company_id=? AND item_id=? AND role IS ?", (company_id, item_id, role)) is not None
+
     def save_scenarios(self, scenarios: dict, company_id: str, item_id: str) -> None:
         self._write(
             "INSERT OR REPLACE INTO scenario_sets (set_id,card_id,company_id,item_id,role,trace_id,set_json,saved_at) "
@@ -220,6 +224,10 @@ class DB:
 
     def scenarios(self, set_id: str) -> sqlite3.Row | None:
         return self._one("SELECT * FROM scenario_sets WHERE set_id=?", (set_id,))
+
+    def has_scenarios(self, company_id: str, item_id: str, role: str | None) -> bool:
+        return self._one("SELECT 1 FROM scenario_sets WHERE company_id=? AND item_id=? AND role IS ?",
+                         (company_id, item_id, role)) is not None
 
     def mark_viewed(self, user_id: int, company_id: str, item_id: str) -> None:
         self._write("INSERT OR REPLACE INTO views (user_id,company_id,item_id,viewed_at) VALUES (?,?,?,?)",
@@ -250,6 +258,12 @@ class DB:
 
     def audit_rows(self, limit: int = 200) -> list[dict[str, Any]]:
         return [dict(r) for r in self._all("SELECT * FROM audit ORDER BY id DESC LIMIT ?", (limit,))]
+
+    def audit_counts(self, days: int) -> dict[str, dict[str, int]]:
+        """Число обращений и разных пользователей по действию за последние `days` дней (мониторинг, К08)."""
+        rows = self._all("SELECT action, COUNT(*) AS n, COUNT(DISTINCT user_id) AS users FROM audit WHERE ts >= ? GROUP BY action",
+                         (iso(now() - timedelta(days=days)),))
+        return {r["action"]: {"count": r["n"], "users": r["users"]} for r in rows}
 
 
 def load_seed(db: DB, path: Path) -> int:

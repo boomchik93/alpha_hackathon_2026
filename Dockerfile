@@ -12,6 +12,10 @@ RUN pip install --no-cache-dir -r requirements.lock
 # Необязательная лемматизация для BM25 (ML_TOKENIZER=lemma): docker build --build-arg WITH_LEMMA=1 .
 ARG WITH_LEMMA=0
 RUN if [ "$WITH_LEMMA" = "1" ]; then pip install --no-cache-dir -r requirements-lemma.txt; fi
+# Сборщик новостей для боевого конвейера (ml/live.py, docker-compose.live.yml): docker build --build-arg WITH_COLLECTOR=1 .
+COPY backend/news_collector/requirements.txt requirements-collector.txt
+ARG WITH_COLLECTOR=0
+RUN if [ "$WITH_COLLECTOR" = "1" ]; then pip install --no-cache-dir -r requirements-collector.txt; fi
 
 COPY ml ./ml
 COPY Makefile ./

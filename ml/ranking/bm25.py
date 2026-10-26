@@ -1,4 +1,4 @@
-"""BM25 лента с замороженной статистикой (REVIEW_PLAN.md, T12).
+"""BM25 лента с замороженной статистикой.
 
 Скор материала не должен зависеть от того, что ещё лежит в пуле: idf и средняя длина документа считаются один раз
 на фоновом корпусе (фрагменты аналитики банка и материалы на момент сборки) и сохраняются в `var/bm25_background.json`.
@@ -15,6 +15,7 @@ from collections import Counter
 from functools import lru_cache
 
 from ml.config import settings
+from ml.fileio import write_atomic
 
 K1 = 1.5
 B = 0.75
@@ -77,8 +78,7 @@ def build_background(save: bool = True) -> FrozenBM25:
     queries = [tokenize(profile_query(p)) for p in list_profiles()]
     model = FrozenBM25.fit([d for d in docs if d], queries)
     if save:
-        background_path().parent.mkdir(parents=True, exist_ok=True)
-        background_path().write_text(json.dumps(model.to_json(), ensure_ascii=False), encoding="utf-8")
+        write_atomic(background_path(), json.dumps(model.to_json(), ensure_ascii=False))
         load_background.cache_clear()
     return model
 

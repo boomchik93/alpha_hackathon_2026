@@ -1,21 +1,32 @@
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, BadgeCheck, Bot, Building2, Check, Landmark, RotateCw, Search, ShieldCheck, Wrench } from 'lucide-react'
+import { ArrowLeft, BadgeCheck, Bot, Building2, Check, Landmark, Network, RotateCw, Search, ShieldCheck, Target, Wrench } from 'lucide-react'
 import { api } from '../../api'
 import { useCard, useCompany, useFeed } from '../../api/hooks'
-import type { ApiError } from '../../api/types'
+import type { ApiError, CardTrace } from '../../api/types'
 import { useRequestRole, useSession } from '../../auth/session'
 import { ErrorBanner, Eyebrow, Logo, PageHeader, Pill, Skel } from '../../components/ui'
-import { ROLE_LABEL, SOURCE_LABEL, featureText, fmtDate } from '../../dict/labels'
+import { ROLE_LABEL, SOURCE_LABEL, featureText, fmtDate, plural } from '../../dict/labels'
 import { cardTitle } from './InsightPage'
 
 const TOOL_LABEL: Record<string, string> = {
   get_item: 'Чтение материала', get_company_profile: 'Профиль компании', search_bank_analytics: 'Поиск в аналитике банка',
   verify_card: 'Проверка цифр и цитат', 'llm.generate': 'Генерация текста', get_feed: 'Лента компании',
+  compute_exposure: 'Оценка влияния на компанию', search_bank_analytics_multi: 'Поиск в аналитике банка по нескольким темам',
+  get_counterparty_network: 'Связи с контрагентами', search_news: 'Поиск похожих новостей',
 }
-const toolLabel = (t: string) => TOOL_LABEL[t] ?? 'Обработка данных'
-const TOOL_ICON: Record<string, typeof Search> = { get_item: Search, get_company_profile: Building2, search_bank_analytics: Landmark, verify_card: ShieldCheck, 'llm.generate': Bot }
+// Неизвестный инструмент не показываем сырым именем: подпись общая, имя остаётся в подсказке.
+const toolLabel = (t: string) => TOOL_LABEL[t] ?? 'Служебный шаг'
+const TOOL_ICON: Record<string, typeof Search> = {
+  get_item: Search, get_company_profile: Building2, search_bank_analytics: Landmark, search_bank_analytics_multi: Landmark,
+  compute_exposure: Target, get_counterparty_network: Network, search_news: Search, verify_card: ShieldCheck, 'llm.generate': Bot,
+}
+// Пункт плана без инструмента (tool: null в ml/agent/orchestrator.py, make_plan) — шаг рассуждения модели: только пояснение.
+const planText = (p: CardTrace['plan'][number]) => {
+  const why = p.why.charAt(0).toLowerCase() + p.why.slice(1)
+  return p.tool ? `${toolLabel(p.tool)} — ${why}` : p.why
+}
 
 // Первоисточник (К10): PDF аналитики банка открывается на нужной странице, у новости — ссылка на сайт.
 export function SourcePage() {
@@ -88,6 +99,8 @@ export function TracePage() {
   const title = cardTitle(card, feed.data?.entries.find(e => e.item_id === itemId))
   const ms = (v: number | null) => (v === null ? '—' : v >= 1000 ? `${(v / 1000).toFixed(1).replace('.', ',')} с` : `${v} мс`)
   const lastCheck = t?.checks.at(-1)
+  // Число цитат банка — итог по карточке: показываем его у первого поиска в аналитике, а не у каждого
+  const firstBankSearch = t?.tool_calls.findIndex(c => c.tool.startsWith('search_bank_analytics')) ?? -1
 
   return <div className="page">
     <button className="back-button" onClick={() => navigate(`/insight/${itemId}`)}><ArrowLeft size={18} /> К карточке</button>
@@ -96,8 +109,8 @@ export function TracePage() {
     {trace.isLoading && <div className="skel-stack"><Skel w="60%" /><Skel w="80%" /></div>}
     {t && <div className="trace-layout">
       <section className="surface trace-timeline">
-        <div className="trace-step"><div className="trace-line"><span><Search /></span></div><div><small>План</small><h3>Что модель решила сделать</h3><p>{t.plan.map(p => `${toolLabel(p.tool)} — ${p.why.charAt(0).toLowerCase() + p.why.slice(1)}`).join('; ')}.</p></div><b>{t.plan.length} шага</b></div>
-        {t.tool_calls.map((c, i) => { const Icon = TOOL_ICON[c.tool] ?? Wrench; return <div key={i} className="trace-step"><div className="trace-line"><span><Icon /></span></div><div><small>Шаг {String(i + 1).padStart(2, '0')}</small><h3>{toolLabel(c.tool)}</h3>{c.tool === 'get_company_profile' && <p>Использованы признаки: {t.company_features_used.map(f => featureText(company.data, f).toLowerCase()).join(', ')}.</p>}{c.tool === 'search_bank_analytics' && <p>{card.bank_view ? `Найдено цитат: ${card.bank_view.quotes.length}.` : 'Материалов банка по теме не найдено, поэтому блок позиции банка пуст.'}</p>}</div><b>{ms(c.ms)}</b></div> })}
+        <div className="trace-step"><div className="trace-line"><span><Search /></span></div><div><small>План</small><h3>Что модель решила сделать</h3><p>{t.plan.map(planText).join('; ')}.</p></div><b>{t.plan.length} {plural(t.plan.length, 'пункт', 'пункта', 'пунктов')}</b></div>
+        {t.tool_calls.map((c, i) => { const Icon = TOOL_ICON[c.tool] ?? Wrench; return <div key={i} className="trace-step"><div className="trace-line"><span><Icon /></span></div><div><small>Шаг {String(i + 1).padStart(2, '0')}</small><h3 title={c.tool}>{toolLabel(c.tool)}</h3>{c.tool === 'get_company_profile' && <p>Использованы признаки: {t.company_features_used.map(f => featureText(company.data, f).toLowerCase()).join(', ')}.</p>}{i === firstBankSearch && <p>{card.bank_view ? `Найдено цитат: ${card.bank_view.quotes.length}.` : 'Материалов банка по теме не найдено, поэтому блок позиции банка пуст.'}</p>}</div><b>{ms(c.ms)}</b></div> })}
         {t.replans.map((r, i) => <div key={`r${i}`} className="trace-step warn"><div className="trace-line"><span><RotateCw /></span></div><div><small>Повтор</small><h3>Перепланирование</h3><p>{r.why}</p></div><b>{r.trigger}</b></div>)}
         {t.checks.map(c => <div key={`c${c.attempt}`} className={`trace-step ${c.issues ? 'warn' : ''}`}><div className="trace-line"><span><ShieldCheck /></span></div><div><small>Проверка, попытка {c.attempt + 1}</small><h3>{c.issues ? 'Найдены несоответствия' : 'Цифры и цитаты совпали с источниками'}</h3><p>{c.issues ? `Замечаний: ${c.issues}. Ответ отправлен на доработку.` : 'Каждое утверждение со ссылкой сверено с текстом источника.'}</p></div><b>{c.issues ? `${c.issues} замеч.` : 'ок'}</b></div>)}
         <div className="trace-step last"><div className="trace-line"><span><BadgeCheck /></span></div><div><small>Источники</small><h3>На что опирается карточка</h3><p>{t.sources.map(x => `${x.title}${x.page ? `, стр. ${x.page}` : ''}`).join('; ')}</p></div><b>{t.sources.length}</b></div>
