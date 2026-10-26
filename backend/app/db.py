@@ -225,6 +225,12 @@ class DB:
     def scenarios(self, set_id: str) -> sqlite3.Row | None:
         return self._one("SELECT * FROM scenario_sets WHERE set_id=?", (set_id,))
 
+    def saved_scenarios(self, company_id: str, item_id: str, role: str | None) -> dict | None:
+        """Последний готовый набор сценариев для пары и роли: страница показывает его сразу, без новой генерации."""
+        row = self._one("SELECT set_json FROM scenario_sets WHERE company_id=? AND item_id=? AND role IS ? ORDER BY saved_at DESC LIMIT 1",
+                        (company_id, item_id, role))
+        return json.loads(row["set_json"]) if row else None
+
     def has_scenarios(self, company_id: str, item_id: str, role: str | None) -> bool:
         return self._one("SELECT 1 FROM scenario_sets WHERE company_id=? AND item_id=? AND role IS ?",
                          (company_id, item_id, role)) is not None

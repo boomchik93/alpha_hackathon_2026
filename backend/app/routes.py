@@ -12,7 +12,7 @@ from pathlib import Path as FsPath
 from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Path, Query, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import BaseModel, Field
 
 from backend.app.auth import CurrentUser, PrivilegedUser, User, effective_role, ensure_company, can_access, forbidden, \
@@ -270,6 +270,24 @@ async def insight(request: Request, user: CurrentUser, company_id: Id, item_id: 
     if job.status == "done":
         return job.result
     return JSONResponse(_view(job).model_dump(mode="json"), status_code=202, headers={"Retry-After": "1"})
+
+
+@router.get(
+    "/companies/{company_id}/insights/{item_id}/scenarios/saved",
+    responses={200: {"description": "ранее построенный ScenarioSet"}, 202: {"model": JobView, "description": "сценарии ещё строятся"}, 204: {"description": "сценариев для карточки ещё нет"}},
+)
+async def saved_scenarios(request: Request, user: CurrentUser, company_id: Id, item_id: Id,
+                          role: Annotated[Role | None, Query(description="только эксперт и админ: сценарии для другой роли")] = None):
+    """Уже построенные сценарии без запуска генерации: чтобы при возврате на страницу они не пропадали."""
+    await ensure_company(request, user, company_id)
+    card_role = effective_role(user, role)
+    saved = _db(request).saved_scenarios(company_id, item_id, card_role)
+    if saved is not None:
+        return saved
+    job = _jobs(request).active(("scenarios", company_id, item_id, card_role))
+    if job is not None:  # пользователь ушёл, пока строилось: страница подхватит ту же задачу
+        return JSONResponse(_view(job).model_dump(mode="json"), status_code=202, headers={"Retry-After": "2"})
+    return Response(status_code=204)
 
 
 @router.get(
