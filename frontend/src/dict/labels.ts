@@ -65,7 +65,20 @@ export const featureText = (profile: CompanyProfile | undefined, path: string) =
 // Компании обезличены: имени нет, показываем отрасль и идентификатор.
 export function shortIndustry(name: string | null | undefined): string {
   if (!name) return 'Компания'
-  return name.replace(/^Торговля (оптовая|розничная) /, (_, t) => (t === 'оптовая' ? 'Опт: ' : 'Розница: ')).replace(/, включая.*$/, '').replace(/ в специализированных магазинах/, '').split(',')[0]
+  const clean = name
+    .replace(/, включая.*$/, '')
+    .replace(/ в специализированных магазинах$/, '')
+    .trim()
+
+  // Наименования ОКВЭД часто начинаются с конструкции «Торговля розничная…».
+  // Для интерфейса перестраиваем её в нормальную именную форму, не превращая
+  // название компании в техническое «Розница: одеждой».
+  return clean
+    .replace(/^Торговля розничная(?:\s+|$)/i, 'Розничная торговля ')
+    .replace(/^Торговля оптовая(?:\s+|$)/i, 'Оптовая торговля ')
+    .replace(/^Перевозка грузов неспециализированными автотранспортными средствами$/i, 'Грузовые автоперевозки')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 export function companyLabel(c: CompanyBrief | CompanyProfile | undefined): string {
   if (!c) return '…'

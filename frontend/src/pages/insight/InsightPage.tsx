@@ -39,7 +39,10 @@ function Header({ card, entry }: { card?: InsightCard; entry?: FeedEntry }) {
   const title = cardTitle(card, entry)
   const kind = entry?.source_kind ?? card?.sources[0]?.kind
   const date = entry?.published_at ?? card?.sources[0]?.published_at
-  const score = card?.relevance.score ?? entry?.score
+  // Релевантность должна совпадать с лентой: именно feed.score определяет
+  // сортировку и значение на превью. Оценку из карточки используем только
+  // как запасной вариант, если запись ленты недоступна.
+  const score = entry?.score ?? card?.relevance.score
   const reasons = card?.relevance.reasons ?? entry?.reasons ?? []
   const role = card?.role ?? s.role
   return <div className="insight-header">

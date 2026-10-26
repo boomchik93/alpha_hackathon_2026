@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, BookOpen, ChevronDown, Landmark, Lightbulb, ShieldCheck, SlidersHorizontal } from 'lucide-react'
 import { useCompany, useFeed } from '../api/hooks'
@@ -11,24 +11,41 @@ export default function FeedPage() {
   const s = useSession()
   const company = useCompany(s.companyId)
   const members = company.data?.level === 'group' ? company.data.member_ids : []
-  const [scope, setScope] = useState('')
-  const [kind, setKind] = useState<'all' | 'news' | 'bank_analytics'>('all')
-  const [topic, setTopic] = useState('all')
-  const [period, setPeriod] = useState('0')
-  const [hideStale, setHideStale] = useState(false)
-  const [maybeOpen, setMaybeOpen] = useState(false)
+  const filterStoreKey = `alfa-feed-filters:${s.user?.login ?? 'guest'}`
+  const saved = readSavedFilters(filterStoreKey)
+  const [scope, setScope] = useState(saved.scope)
+  const [kind, setKind] = useState<'all' | 'news' | 'bank_analytics'>(saved.kind)
+  const [topic, setTopic] = useState(saved.topic)
+  const [period, setPeriod] = useState<Period>(saved.period)
+  const [hideStale, setHideStale] = useState(saved.hideStale)
+  const [maybeOpen, setMaybeOpen] = useState(saved.maybeOpen)
+
+  useEffect(() => {
+    try { sessionStorage.setItem(filterStoreKey, JSON.stringify({ scope, kind, topic, period, hideStale, maybeOpen })) } catch { /* sessionStorage может быть недоступен */ }
+  }, [filterStoreKey, scope, kind, topic, period, hideStale, maybeOpen])
 
   // Разрез для группы: вся группа или отдельная компания-участник (К10)
   const feedId = scope && members.includes(scope) ? scope : s.companyId
   const all = useFeed(feedId)
   const asOf = all.data?.as_of
-  const dateFrom = asOf && Number(period) ? shiftDate(asOf, -Number(period)) : undefined
-  const filters: FeedFilters = { source_kind: kind === 'all' ? undefined : kind, topic: topic === 'all' ? undefined : topic, date_from: dateFrom, hide_stale: hideStale || undefined }
-  const feed = useFeed(feedId, filters)
+  const periodDays = Number(period)
+  // Период — это число календарных дат, включая дату актуальности ленты.
+  // Например, 7 дней для 15 сентября: с 9 по 15 сентября включительно.
+  const dateFrom = asOf && periodDays ? shiftDate(asOf, -(periodDays - 1)) : undefined
+  const filters = useMemo<FeedFilters>(() => ({
+    source_kind: kind === 'all' ? undefined : kind,
+    topic: topic === 'all' ? undefined : topic,
+    date_from: dateFrom,
+    date_to: periodDays ? asOf : undefined,
+    hide_stale: hideStale || undefined,
+  }), [asOf, dateFrom, hideStale, kind, periodDays, topic])
+  // Не отправляем промежуточный запрос без дат, пока неизвестна дата актуальности.
+  // Также не показываем карточки от предыдущего периода во время загрузки нового.
+  const feed = useFeed(periodDays && !asOf ? '' : feedId, filters, false)
   const topics = useMemo(() => [...new Set(all.data?.entries.flatMap(e => e.topics))].sort(), [all.data])
   const main = feed.data?.entries.filter(e => e.tier === 'main') ?? []
   const maybe = feed.data?.entries.filter(e => e.tier === 'maybe') ?? []
-  const reset = () => { setKind('all'); setTopic('all'); setPeriod('0'); setHideStale(false) }
+  const reset = () => { setScope(''); setKind('all'); setTopic('all'); setPeriod('0'); setHideStale(false); setMaybeOpen(false) }
 
   return <div className="page feed-page">
     <PageHeader eyebrow="Персональная лента" title="События для вашего бизнеса" subtitle="Не пересказ новостей — только то, что влияет на вашу компанию." action={<div className="updated"><span /> Обновлено сегодня, {feed.data ? fmtTime(feed.data.fetched_at ?? new Date().toISOString()) : '…'}</div>} />
@@ -38,7 +55,7 @@ export default function FeedPage() {
         {members.length > 0 && <div className="filter-field"><span>Разрез</span><Dropdown ariaLabel="Разрез" value={feedId} onChange={setScope} options={[{ value: s.companyId, label: 'Вся группа' }, ...members.map(m => ({ value: m, label: `Компания ${m}` }))]} /></div>}
         <div className="filter-field"><span>Источник</span><Dropdown ariaLabel="Источник" value={kind} onChange={v => setKind(v as typeof kind)} options={[{ value: 'all', label: 'Все источники' }, { value: 'news', label: 'Новости' }, { value: 'bank_analytics', label: 'Аналитика банка' }]} /></div>
         <div className="filter-field"><span>Тема</span><Dropdown ariaLabel="Тема" value={topic} onChange={setTopic} options={[{ value: 'all', label: 'Все темы' }, ...topics.map(t => ({ value: t, label: topicLabel(t) }))]} /></div>
-        <div className="filter-field"><span>Период</span><Dropdown ariaLabel="Период" value={period} onChange={setPeriod} options={[{ value: '0', label: 'Всё время' }, { value: '30', label: '30 дней' }, { value: '7', label: '7 дней' }]} /></div>
+        <div className="filter-field"><span>Период</span><Dropdown ariaLabel="Период" value={period} onChange={value => setPeriod(value as Period)} options={[{ value: '0', label: 'Всё время' }, { value: '30', label: '30 дней' }, { value: '7', label: '7 дней' }]} /></div>
         <label className="switch-row"><input type="checkbox" checked={hideStale} onChange={e => setHideStale(e.target.checked)} /><span className="switch" />Скрыть устаревшие</label>
         <div className="filter-note"><ShieldCheck size={18} /><p><b>Лента персональна</b><br />{feed.data ? `${feed.data.filtered_out} ${plural(feed.data.filtered_out, 'материал отсеян', 'материала отсеяно', 'материалов отсеяно')} как не связанные с компанией` : '…'}</p></div>
       </aside>
@@ -79,4 +96,32 @@ function shiftDate(iso: string, days: number) {
   const d = new Date(`${iso}T12:00:00`)
   d.setDate(d.getDate() + days)
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+type SavedFilters = {
+  scope: string
+  kind: 'all' | 'news' | 'bank_analytics'
+  topic: string
+  period: Period
+  hideStale: boolean
+  maybeOpen: boolean
+}
+
+type Period = '0' | '7' | '30'
+
+function readSavedFilters(key: string): SavedFilters {
+  const fallback: SavedFilters = { scope: '', kind: 'all', topic: 'all', period: '0', hideStale: false, maybeOpen: false }
+  try {
+    const value = JSON.parse(sessionStorage.getItem(key) ?? '{}') as Partial<SavedFilters>
+    return {
+      scope: typeof value.scope === 'string' ? value.scope : fallback.scope,
+      kind: value.kind === 'news' || value.kind === 'bank_analytics' ? value.kind : 'all',
+      topic: typeof value.topic === 'string' ? value.topic : fallback.topic,
+      period: value.period === '7' || value.period === '30' ? value.period : '0',
+      hideStale: value.hideStale === true,
+      maybeOpen: value.maybeOpen === true,
+    }
+  } catch {
+    return fallback
+  }
 }

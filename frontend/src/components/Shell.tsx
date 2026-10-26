@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { ArrowRight, ArrowUp, Bell, Building2, CircleAlert, Gauge, Home, MessageSquareText, Moon, PanelLeftClose, Sparkles, Sun, TrendingDown } from 'lucide-react'
+import { ArrowUp, Building2, Gauge, Home, MessageSquareText, Moon, PanelLeftClose, Sparkles, Sun } from 'lucide-react'
 import { USE_MOCK } from '../api'
-import { useCompanies, useCompany, useFeed, useSummary } from '../api/hooks'
+import { useCompanies, useCompany, useSummary } from '../api/hooks'
 import type { Role } from '../api/types'
 import { useSession } from '../auth/session'
-import { ROLE_LABEL, companyLabel, fmtDate, plural } from '../dict/labels'
-import { Dropdown, Eyebrow, Logo, store } from './ui'
+import { ROLE_LABEL, companyLabel } from '../dict/labels'
+import { Dropdown, Logo, store } from './ui'
 
 const ROLES = (Object.keys(ROLE_LABEL) as Role[]).filter(r => r !== 'other')
 
@@ -28,7 +28,6 @@ export function Shell({ children }: { children: ReactNode }) {
   const loc = useLocation()
   const [collapsed, setCollapsed] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
-  const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [theme, setTheme] = useTheme()
   const actionsRef = useRef<HTMLDivElement>(null)
@@ -36,10 +35,9 @@ export function Shell({ children }: { children: ReactNode }) {
   const companies = useCompanies(s.user?.login)
   const company = useCompany(s.companyId)
   const summary = useSummary(s.companyId)
-  const feed = useFeed(s.companyId, { tier: 'main' })
   const newCount = summary.data?.new_count ?? 0
 
-  useEffect(() => { window.scrollTo(0, 0); setNotificationsOpen(false); setProfileOpen(false) }, [loc.pathname])
+  useEffect(() => { window.scrollTo(0, 0); setProfileOpen(false) }, [loc.pathname])
   useEffect(() => {
     const updateScrollTop = () => setShowScrollTop(window.scrollY > 360)
     updateScrollTop()
@@ -50,11 +48,11 @@ export function Shell({ children }: { children: ReactNode }) {
     }
   }, [])
   useEffect(() => {
-    if (!notificationsOpen && !profileOpen) return
-    const close = (event: MouseEvent) => { if (!actionsRef.current?.contains(event.target as Node)) { setNotificationsOpen(false); setProfileOpen(false) } }
+    if (!profileOpen) return
+    const close = (event: MouseEvent) => { if (!actionsRef.current?.contains(event.target as Node)) setProfileOpen(false) }
     document.addEventListener('mousedown', close)
     return () => document.removeEventListener('mousedown', close)
-  }, [notificationsOpen, profileOpen])
+  }, [profileOpen])
 
   const items = [
     { to: '/', icon: Home, label: 'Главная' },
@@ -66,8 +64,6 @@ export function Shell({ children }: { children: ReactNode }) {
   const isFeed = (to: string) => to === '/feed' && (loc.pathname.startsWith('/insight') || loc.pathname.startsWith('/trace') || loc.pathname.startsWith('/source'))
   const canSwitchRole = s.user?.access !== 'user'
   const initials = (s.user?.display_name ?? '').split(/[\s,]+/).filter(Boolean).slice(0, 2).map(x => x[0].toUpperCase()).join('')
-  const top = feed.data?.entries ?? []
-  const dataWarn = company.data?.data_quality.notes[0] ?? (company.data?.data_quality.missing_fields.length ? 'Часть полей профиля не заполнена: выводы будут осторожнее' : undefined)
   const scrollToTop = () => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       window.scrollTo(0, 0)
@@ -114,19 +110,7 @@ export function Shell({ children }: { children: ReactNode }) {
         </div>
         <div className="top-actions" ref={actionsRef}>
           <button className="icon-button theme-toggle" aria-label={theme === 'dark' ? 'Включить светлую тему' : 'Включить тёмную тему'} title={theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'} onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>{theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}</button>
-          <button className={`icon-button ${newCount ? 'has-dot' : ''} ${notificationsOpen ? 'active' : ''}`} aria-label="Уведомления" aria-expanded={notificationsOpen} onClick={() => { setNotificationsOpen(!notificationsOpen); setProfileOpen(false) }}><Bell size={20} /></button>
-          <button className="avatar" aria-label="Профиль пользователя" aria-expanded={profileOpen} onClick={() => { setProfileOpen(!profileOpen); setNotificationsOpen(false) }}>{initials}</button>
-          {notificationsOpen && <section className="notifications-popover" aria-label="Уведомления">
-            <div className="notifications-head"><div><Eyebrow>Центр событий</Eyebrow><h3>Уведомления</h3></div>{newCount > 0 && <span>{newCount} {plural(newCount, 'новое', 'новых', 'новых')}</span>}</div>
-            <div className="notifications-list">
-              {top.slice(0, 2).map((e, i) => <Link key={e.item_id} to={`/insight/${e.item_id}`} className={`notification-item ${e.is_new ? 'unread' : ''}`}>
-                <span className={`notification-icon ${i === 0 ? 'critical' : ''}`}>{i === 0 ? <TrendingDown /> : <Sparkles />}</span>
-                <div><b>{e.title}</b><p>Почему вам: {e.reasons[0]}</p><small>{fmtDate(e.published_at)}</small></div>{e.is_new ? <i /> : <span />}
-              </Link>)}
-              {dataWarn && <Link to="/profile" className="notification-item"><span className="notification-icon profile"><CircleAlert /></span><div><b>В профиле компании есть пробелы</b><p>{dataWarn}</p><small>Профиль компании</small></div><span /></Link>}
-            </div>
-            <Link to="/feed" className="notifications-footer">Перейти ко всем событиям <ArrowRight size={16} /></Link>
-          </section>}
+          <button className="avatar" aria-label="Профиль пользователя" aria-expanded={profileOpen} onClick={() => setProfileOpen(!profileOpen)}>{initials}</button>
           {profileOpen && <div className="profile-popover">
             <strong>{s.user?.display_name}</strong>
             <span>{s.user?.access === 'user' ? ROLE_LABEL[s.user.role] : s.user?.access === 'expert' ? 'Эксперт банка' : 'Администратор'}</span>
